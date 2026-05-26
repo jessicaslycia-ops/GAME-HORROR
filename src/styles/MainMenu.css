@@ -22,12 +22,21 @@
     padding: 0;
     user-select: none;
     box-sizing: border-box;
-    transition: filter 1.5s ease-in-out;
+    /* Poin 1: Default awal dibuat gelap total agar transisi dari Intro tidak bocor gambar background */
+    opacity: 0;
+    filter: brightness(0) blur(10px);
+    transition: opacity 1.8s ease-in-out, filter 1.8s ease-in-out;
 }
 
-/* Transisi Global Mulus Antar Layar Besar (Poin 3) */
+/* Aktif jika masuk ke screen splash */
+.horror-game-container.splash-bg-active {
+    opacity: 1;
+    filter: brightness(1) blur(0px);
+}
+
+/* Transisi Global Mulus Antar Layar Besar */
 .screen-fade-out-global {
-    filter: brightness(0.2) blur(5px);
+    filter: brightness(0.2) blur(5px) !important;
 }
 
 /* Flicker Kedipan Sinematik Proyektor Bioskop Tua */
@@ -74,7 +83,7 @@
     100% { transform: translateY(-105vh) scale(0.5); opacity: 0; }
 }
 
-/* --- POIN 4: INTRO LAYAR HITAM TOTAL MURNI --- */
+/* --- POIN 1: INTRO LAYAR HITAM TOTAL MURNI --- */
 .intro-screen-pure-black {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -83,6 +92,7 @@
     justify-content: center;
     align-items: center;
     z-index: 999;
+    opacity: 1 !important;
 }
 
 .intro-text-bright {
@@ -91,12 +101,12 @@
     text-transform: uppercase;
     color: #ffffff !important;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-    animation: fadeInOutIntro 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: fadeInOutIntro 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes fadeInOutIntro {
     0% { opacity: 0; transform: scale(0.96); filter: blur(6px); }
-    30%, 75% { opacity: 1; transform: scale(1); filter: blur(0px); }
+    25%, 80% { opacity: 1; transform: scale(1); filter: blur(0px); }
     100% { opacity: 0; transform: scale(1.04); filter: blur(4px); }
 }
 
@@ -113,7 +123,7 @@
     position: relative;
 }
 
-/* Poin 4: Transisi Merah Perlahan Selaras Dengan Teks Splash */
+/* Transisi Merah Perlahan Selaras Dengan Teks Splash */
 .horror-overlay-slow {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -121,7 +131,7 @@
     background: radial-gradient(circle, rgba(185, 0, 0, 0.35) 0%, rgba(18, 0, 0, 0.88) 60%, rgba(0, 0, 0, 1) 100%);
     z-index: 1;
     opacity: 0;
-    animation: smoothRedBleed 4.5s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards; 
+    animation: smoothRedBleed 3.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards; 
 }
 
 @keyframes smoothRedBleed {
@@ -137,7 +147,7 @@
     text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
     opacity: 0;
     z-index: 2;
-    animation: fadeInSplashText 2.5s ease-out 1.5s forwards, pulseText 1.6s infinite 4s ease-in-out;
+    animation: fadeInSplashText 2s ease-out 0.8s forwards, pulseText 1.6s infinite 3s ease-in-out;
 }
 
 @keyframes fadeInSplashText {
@@ -145,7 +155,7 @@
     to { opacity: 1; transform: scale(1); filter: blur(0px); }
 }
 
-/* Poin 1 & 2: Animasi Menghilang Super Halus Mengalir Mengikuti Ketukan Jeda */
+/* Animasi Menghilang Super Halus Mengikuti Ketukan Jeda */
 .press-anything-text.interacted-fade-out {
     color: var(--accent-red) !important;
     text-shadow: 0 0 40px var(--accent-red), 0 0 15px var(--accent-red);
@@ -184,6 +194,19 @@
     top: 35%; 
     z-index: 5;
     text-align: left;
+}
+
+/* Poin 2: Menjamin teks benar-benar disembunyikan secara mutlak sebelum diizinkan tampil */
+.content-hidden {
+    opacity: 0 !important;
+    filter: blur(15px) !important;
+    transform: translate3d(-30px, 0, 0) !important;
+}
+
+.content-visible {
+    transition: opacity 2.5s cubic-bezier(0.22, 1, 0.36, 1), 
+                filter 2.5s cubic-bezier(0.22, 1, 0.36, 1), 
+                transform 2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .order-header {
@@ -246,12 +269,14 @@
 }
 
 /* --- ANIMASI REVEAL FADE-IN YANG DICADANGKAN HANYA UNTUK AKSES PERTAMA --- */
-.main-menu-fade-in {
-    animation: smoothMenuReveal 3s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards; 
+.main-menu-fade-in.content-visible {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translate3d(0, 0, 0);
 }
 
 .global-bar-fade-in {
-    animation: smoothMenuReveal 3.4s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
+    animation: smoothMenuReveal 3.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
 }
 
 @keyframes smoothMenuReveal {
