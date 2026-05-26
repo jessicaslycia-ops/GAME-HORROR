@@ -1,259 +1,232 @@
-/* --- RESET & LAYOUT UTAMA --- */
+/* --- ROOT & GLOBAL --- */
+:root {
+    --text-bright: #f0f0f0;
+    --text-dim: #999;
+    --accent-red: #ff1a1a;
+    --panel-bg: rgba(0, 0, 0, 0.75);
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
 .horror-game-container {
-    background-color: #020202;
-    color: #ffffff;
-    font-family: 'Courier New', Courier, monospace;
+    background-color: #030303;
+    background-size: cover;
+    background-position: center;
+    color: var(--text-bright);
+    font-family: 'Times New Roman', Times, serif; /* Estetika Victorian/Gothic */
     height: 100vh;
     width: 100vw;
     overflow: hidden;
     position: relative;
-    margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    user-select: none;
 }
 
-/* --- GLITCH BACKGROUND ONLY --- */
+/* Background Glitch - Tetap ada di belakang */
 .glitch-bg {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(35, 5, 5, 0.4) 0%, rgba(0, 0, 0, 0.98) 80%);
+    top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
     pointer-events: none;
-    animation: screenFlicker 0.15s infinite, bgGlitch 8s infinite;
+    background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+    animation: screenFlicker 0.2s infinite;
 }
 
 @keyframes screenFlicker {
-    0%, 100% { opacity: 0.95; }
-    50% { opacity: 0.82; } /* Kedipan halus konstan pada background */
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.25; }
 }
 
-@keyframes bgGlitch {
-    0%, 93%, 98%, 100% { filter: hue-rotate(0deg) saturate(1); transform: scale(1); }
-    94% { filter: hue-rotate(90deg) saturate(2); transform: scale(1.02) skewX(2deg); }
-    95% { filter: invert(0.1) sepia(1) saturate(3); transform: scale(0.99) skewX(-3deg); }
-    97% { filter: hue-rotate(-50deg); transform: scale(1.01); }
-}
-
-/* --- FASE 1: INTRO --- */
-.intro-screen {
-    font-size: 2.5rem;
-    letter-spacing: 6px;
-    text-transform: uppercase;
-    color: #ffffff;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-    text-align: center;
-    animation: fadeInOut 4s forwards;
-    z-index: 5;
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: scale(0.95); }
-    30%, 70% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(1.05); }
-}
-
-/* --- FASE 2: SPLASH SCREEN (PRESS ANYTHING) --- */
-.splash-screen {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    padding-bottom: 12%;
-    z-index: 3;
-    cursor: pointer;
-}
-
-/* Perbaikan: Tulisan dibuat jauh lebih cerah */
-.press-anything-text {
-    font-size: 2.2rem;
-    letter-spacing: 6px;
-    text-transform: uppercase;
-    color: #ffffff; /* Putih cerah */
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-    animation: pulseText 1.5s infinite;
-    transition: all 0.2s ease;
-}
-
-.press-anything-text.interacted {
-    color: #ff0000 !important;
-    text-shadow: 0 0 30px #ff0000, 0 0 15px #ff0000;
-    animation: none;
-    transform: scale(1.15);
-}
-
-@keyframes pulseText {
-    0%, 100% { opacity: 0.5; transform: scale(0.98); }
-    50% { opacity: 1; transform: scale(1); }
-}
-
-/* --- FASE 3: HOME MENU --- */
-.home-menu-screen {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding-left: 10%;
-    z-index: 3;
-}
-
-/* Urat Nadi Mengakar & Cerah (Menggunakan Filter Glow) */
-.veins-container {
+/* --- HOME MENU (STYLE: THE ORDER 1886) --- */
+.order-layout {
     position: absolute;
-    width: 320px;
-    height: 320px;
-    pointer-events: none;
-    z-index: 2;
-    filter: drop-shadow(0 0 12px #ff0000) drop-shadow(0 0 4px #8b0000);
-    animation: veinThrob 2.5s ease-in-out infinite;
-    opacity: 0.85; /* Lebih cerah */
+    left: 8%;
+    top: 25%;
+    z-index: 5;
+    text-align: left;
 }
 
-.veins-bottom-left { bottom: -20px; left: -20px; }
-.veins-top-right { top: -20px; right: -20px; transform: rotate(180deg); }
-
-@keyframes veinThrob {
-    0%, 100% { transform: scale(1) rotate(var(--rot, 0deg)); opacity: 0.7; }
-    50% { transform: scale(1.08) rotate(var(--rot, 0deg)); opacity: 1; }
+.order-header {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    width: fit-content;
 }
 
-/* Menu Text Styling (Cerah) */
-.menu-options-list {
-    list-style: none;
-    padding: 0;
+.order-title {
+    font-size: 3rem;
+    font-weight: 400;
+    letter-spacing: 8px;
+    text-transform: uppercase;
     margin: 0;
 }
 
-.menu-options-item {
-    margin: 24px 0;
+.order-subtitle {
+    font-size: 2rem;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    padding-left: 20px;
+    border-left: 2px solid var(--text-dim);
 }
 
-.menu-options-button {
+.order-menu-list {
+    list-style: none;
+    padding: 0;
+}
+
+.order-menu-item {
+    margin: 15px 0;
+}
+
+.order-menu-btn {
     background: none;
     border: none;
-    color: #e5e5e5; /* Abu-abu sangat terang mendekati putih */
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1.8rem;
+    color: var(--text-dim);
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.5rem;
     text-transform: uppercase;
-    letter-spacing: 5px;
+    letter-spacing: 3px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s;
+    padding: 5px 0;
 }
 
-.menu-options-button:hover {
-    color: #ff1a1a;
-    transform: translateX(20px);
-    text-shadow: 0 0 20px #ff0000, 2px 2px 4px #000;
+.order-menu-btn:hover {
+    color: var(--text-bright);
+    letter-spacing: 5px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-/* --- PANEL PANEL SEPERTI OPTION --- */
-.options-panel {
-    background: rgba(5, 5, 5, 0.95);
-    border: 2px solid #3a0000;
-    box-shadow: 0 0 30px rgba(139, 0, 0, 0.4);
-    padding: 30px;
-    width: 650px;
-    max-height: 85vh;
-    overflow-y: auto;
-    z-index: 4;
-    animation: panelFadeIn 0.3s ease-out;
-}
-
-@keyframes panelFadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.panel-title {
-    color: #ff0000;
-    font-size: 2rem;
-    letter-spacing: 4px;
-    margin-bottom: 25px;
-    text-transform: uppercase;
-    border-bottom: 2px solid #3a0000;
-    padding-bottom: 10px;
-}
-
-.setting-row {
+.order-footer {
+    position: absolute;
+    bottom: 8%;
+    left: 8%;
     display: flex;
-    justify-content: space-between;
+    gap: 30px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.footer-icon {
+    display: inline-flex;
     align-items: center;
-    margin: 18px 0;
-    font-size: 1.1rem;
+    gap: 10px;
+}
+
+/* --- SETTINGS PANEL (STYLE: THIEF MODERN) --- */
+.thief-settings-panel {
+    width: 85%;
+    height: 80%;
+    background: var(--panel-bg);
+    backdrop-filter: blur(10px);
+    border-left: 4px solid var(--accent-red);
+    display: grid;
+    grid-template-columns: 300px 1fr 350px;
+    z-index: 10;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.settings-sidebar {
+    padding: 40px;
+    border-right: 1px solid var(--border-color);
+}
+
+.settings-category {
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    margin-bottom: 25px;
+    cursor: pointer;
+    text-transform: uppercase;
     letter-spacing: 2px;
 }
 
-.setting-label {
-    color: #ccc;
+.settings-category.active {
+    color: var(--accent-red);
+    font-weight: bold;
 }
 
-/* Input & Select Styling */
-.setting-row select, .setting-row input[type="range"] {
-    background: #151515;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 5px 10px;
-    font-family: 'Courier New', Courier, monospace;
-    outline: none;
-    cursor: pointer;
+.settings-main {
+    padding: 40px;
+    overflow-y: auto;
 }
 
-.setting-row select:focus {
-    border-color: #ff0000;
+.thief-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 10px;
 }
 
-/* Audio Upload Button */
-.audio-upload-btn {
-    background: #2a0000;
-    color: #ffcccc;
-    border: 1px solid #8b0000;
-    padding: 6px 12px;
-    font-family: 'Courier New', Courier, monospace;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.audio-upload-btn:hover {
-    background: #5a0000;
-    color: #fff;
-}
-
-.back-btn {
-    background: none;
-    border: 1px solid #ff0000;
-    color: #ff0000;
-    padding: 10px 20px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1.1rem;
+.thief-label {
     text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-top: 25px;
+    letter-spacing: 2px;
+    font-size: 1rem;
+}
+
+.thief-toggle-group {
+    display: flex;
+    background: #111;
+    border: 1px solid #333;
+}
+
+.thief-toggle-btn {
+    padding: 5px 20px;
+    background: none;
+    border: none;
+    color: #444;
     cursor: pointer;
-    width: 100%;
-    transition: all 0.2s;
+    font-family: inherit;
+    text-transform: uppercase;
 }
 
-.back-btn:hover {
-    background: #ff0000;
-    color: #000;
-    box-shadow: 0 0 15px #ff0000;
+.thief-toggle-btn.active {
+    background: var(--accent-red);
+    color: white;
 }
 
-/* Custom Scrollbar untuk Panel Option */
-.options-panel::-webkit-scrollbar {
-    width: 6px;
+.settings-description {
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.02);
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.6;
 }
-.options-panel::-webkit-scrollbar-track {
-    background: #050505;
+
+/* --- AUDIO & IMAGE UPLOAD STYLING --- */
+.upload-field {
+    background: #1a1a1a;
+    padding: 15px;
+    margin-bottom: 20px;
 }
-.options-panel::-webkit-scrollbar-thumb {
-    background: #3a0000;
+
+.upload-label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: var(--accent-red);
+}
+
+/* --- INTRO & SPLASH --- */
+.press-anything {
+    font-size: 2rem;
+    letter-spacing: 10px;
+    text-shadow: 0 0 20px rgba(255,255,255,0.8);
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
