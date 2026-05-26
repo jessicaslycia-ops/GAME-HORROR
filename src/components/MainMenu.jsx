@@ -6,12 +6,14 @@ const MainMenu = () => {
   const [activeTab, setActiveTab] = useState('graphics'); 
   const [isInteracted, setIsInteracted] = useState(false);
   const [triggerFlash, setTriggerFlash] = useState(false);
-  const [bgImage, setBgImage] = useState('/bg-default.jpg');
+  
+  // State awal background kita arahkan ke foto pertama (bg-menu-1.jpg)
+  const [bgImage, setBgImage] = useState('/bg-menu-1.jpg');
 
   // FLAGS UNTUK TRANSISI SIFATNYA ONCE & RE-TRIGGER ANIMATION
   const [isTransitioning, setIsTransitioning] = useState(false); 
   const [showMenuText, setShowMenuText] = useState(false); 
-  const [menuTransitionState, setMenuTransitionState] = useState(''); // 'slide-in' atau '' untuk reset animasi
+  const [menuTransitionState, setMenuTransitionState] = useState(''); 
 
   // MANAGEMENT DEVICE INPUT
   const [inputMode, setInputMode] = useState('keyboard'); 
@@ -82,17 +84,15 @@ const MainMenu = () => {
       gainNodeRef.current = gainNode;
     }
 
-    // Reset posisi audio ke 0 agar memutar dari awal
     audio.currentTime = 0;
     gainNodeRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
     audio.play().catch(() => {});
     gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 3.0);
   };
 
-  // Poin 1: Perbaikan Fungsi Fade-Out Audio BGM saat kembali ke Splash Screen
+  // Perbaikan Fungsi Fade-Out Audio BGM saat kembali ke Splash Screen
   const fadeOutBgm = () => {
     if (audioCtxRef.current && gainNodeRef.current) {
-      // Turunkan volume ke 0 dalam waktu 1.2 detik
       gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 1.2);
       setTimeout(() => {
         if (audioRefs.bgm.current) {
@@ -101,7 +101,6 @@ const MainMenu = () => {
         }
       }, 1200);
     } else {
-      // Fallback jika Web Audio belum terinisialisasi dengan sempurna
       if (audioRefs.bgm.current) {
         audioRefs.bgm.current.pause();
         audioRefs.bgm.current.currentTime = 0;
@@ -125,6 +124,21 @@ const MainMenu = () => {
     playSfx('introPress'); 
     startBgmWithFade(); 
     setTriggerFlash(true);
+
+    // ==========================================
+    // LOGIKA ACAK MULTI-BACKGROUND OTOMATIS
+    // ==========================================
+    // Tentukan jumlah total foto yang saat ini ada di folder public kamu.
+    // Ganti angka di bawah ini (misal: jika punya 3 foto, ganti jadi 3. Jika punya 5, ganti jadi 5).
+    // Kodenya aman, tidak akan membuat background kosong/putih.
+    const TOTAL_BACKGROUNDS = 2; 
+    
+    // Pilih angka acak antara 1 sampai jumlah total foto
+    const randomIndex = Math.floor(Math.random() * TOTAL_BACKGROUNDS) + 1;
+    
+    // Set background yang terpilih secara acak
+    setBgImage(`/bg-menu-${randomIndex}.jpg`);
+    // ==========================================
     
     setTimeout(() => {
       setGameState('menu');
@@ -133,18 +147,18 @@ const MainMenu = () => {
       
       setTimeout(() => {
         setShowMenuText(true);
-        setMenuTransitionState('slide-in'); // Trigger animasi geser masuk dari kiri
+        setMenuTransitionState('slide-in'); 
       }, 50);
     }, 2200); 
   };
 
-  // Poin 1: Fungsi Kembali ke Splash Screen (BGM Ikut Dimatikan)
+  // Fungsi Kembali ke Splash Screen (BGM Ikut Dimatikan)
   const handleBackToSplash = () => {
     playSfx('back');
     setIsTransitioning(true);
     setShowMenuText(false); 
-    setMenuTransitionState(''); // Bersihkan kelas animasi menu
-    fadeOutBgm(); // Menghentikan dan me-fadeout musik latar menu utama
+    setMenuTransitionState(''); 
+    fadeOutBgm(); 
 
     setTimeout(() => {
       setIsInteracted(false);
@@ -153,18 +167,18 @@ const MainMenu = () => {
     }, 1500);
   };
 
-  // Poin 2: Fungsi Global untuk Mengembalikan User ke Menu Utama dengan Trigger Animasi Ulang
+  // Fungsi Global untuk Mengembalikan User ke Menu Utama dengan Trigger Animasi Ulang
   const handleReturnToMenu = () => {
     playSfx('back');
     setShowMenuText(false);
-    setMenuTransitionState(''); // Reset state terlebih dahulu agar DOM menyegarkan animasinya
+    setMenuTransitionState(''); 
     
     setGameState('menu');
     setChapterAlert('');
 
     setTimeout(() => {
       setShowMenuText(true);
-      setMenuTransitionState('slide-in'); // Picu kembali animasi geser masuk perlahan dari kiri
+      setMenuTransitionState('slide-in'); 
     }, 50);
   };
 
@@ -335,7 +349,6 @@ const MainMenu = () => {
 
       {/* 3. SCREEN HOME MENU UTAMA */}
       {gameState === 'menu' && (
-        /* Poin 2: Menggabungkan state menuTransitionState agar memicu ulang kelas CSS animasi masuk */
         <div className={`order-layout ${menuTransitionState} ${showMenuText ? 'content-visible' : 'content-hidden'}`}>
           <div className="order-header">
             <h1 className="order-title">LAST TRANSMISSION</h1>
