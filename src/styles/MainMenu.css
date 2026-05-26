@@ -154,11 +154,11 @@
 }
 @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
 
-/* --- PERBAIKAN TOTAL LAYOUT HOME MENU MURNI --- */
+/* --- POSISI LAYOUT HOME MENU UTAMA --- */
 .order-layout {
     position: absolute;
     left: 8%;
-    bottom: 18%; /* Menurunkan posisi menu agar presisi di kiri bawah */
+    top: 35%; /* Mengubah 'bottom' kemarin jadi 'top' supaya posisi menu naik ke atas */
     z-index: 5;
     text-align: left;
 }
