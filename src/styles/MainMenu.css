@@ -97,7 +97,6 @@
     position: relative;
 }
 
-/* Tambahan: Efek Vignette Gradasi Merah Darah & Hitam Pekat agar Lebih Horor */
 .horror-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -129,7 +128,6 @@
     50% { opacity: 1; transform: scale(1); }
 }
 
-/* Tambahan: Animasi Flash Cahaya Sangat Terang dengan Efek Fade */
 .flash-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -144,7 +142,7 @@
     100% { opacity: 0; }
 }
 
-/* --- FASE 3: HOME MENU (FINAL END STYLE) --- */
+/* --- FASE 3: HOME MENU --- */
 .order-layout {
     position: absolute;
     left: 8%;
@@ -153,7 +151,6 @@
     text-align: left;
 }
 
-/* Animasi Muncul Lembut & Bergeser dari Kiri ke Kanan untuk Header */
 .order-header {
     display: flex;
     align-items: baseline;
@@ -189,7 +186,6 @@
     margin: 0;
 }
 
-/* Animasi Cascade (Bergantian/Satu-satu) Muncul dari Kiri Mendatar ke Kanan */
 .order-menu-item {
     margin: 18px 0;
     opacity: 0;
@@ -197,7 +193,6 @@
     animation: slideFromLeft 1s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
-/* Memberikan jeda delay agar menu muncul berurutan secara estetik */
 .order-menu-item:nth-child(1) { animation-delay: 0.2s; }
 .order-menu-item:nth-child(2) { animation-delay: 0.35s; }
 .order-menu-item:nth-child(3) { animation-delay: 0.5s; }
@@ -205,14 +200,8 @@
 .order-menu-item:nth-child(5) { animation-delay: 0.8s; }
 
 @keyframes slideFromLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-60px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(-60px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 .order-menu-btn {
@@ -232,7 +221,192 @@
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
-/* --- INTRINSICS/STAGE SELECT PANEL --- */
+/* --- PANEL SETTING (OPTION) --- */
+.thief-settings-panel { 
+    width: 85%; 
+    height: 80%; 
+    background: var(--panel-bg); 
+    backdrop-filter: blur(10px); 
+    border-left: 4px solid var(--accent-red); 
+    display: grid; 
+    grid-template-columns: 280px 1fr 320px; 
+    z-index: 10; 
+    box-shadow: 0 0 40px rgba(0,0,0,0.8); 
+    animation: panelSlideIn 0.3s ease-out; 
+}
+
+@keyframes panelSlideIn { 
+    from { transform: translateX(-30px); opacity: 0; } 
+    to { transform: translateX(0); opacity: 1; } 
+}
+
+.settings-sidebar { 
+    padding: 35px; 
+    border-right: 1px solid var(--border-color); 
+}
+
+.settings-sidebar h2 { 
+    font-size: 1.6rem; 
+    letter-spacing: 3px; 
+    margin-bottom: 35px; 
+    color: #fff; 
+    text-transform: uppercase; 
+}
+
+.settings-category { 
+    color: var(--text-dim); 
+    font-size: 1.1rem; 
+    margin: 20px 0; 
+    cursor: pointer; 
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.2s; 
+}
+
+.settings-category:hover, .settings-category.focused { 
+    color: #fff; 
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.settings-category.active { 
+    color: var(--accent-red) !important; 
+    font-weight: bold; 
+    background: rgba(255, 26, 26, 0.1);
+    border-left: 3px solid var(--accent-red);
+}
+
+.settings-main { 
+    padding: 35px; 
+    overflow-y: auto; 
+    display: flex;
+    flex-direction: column;
+}
+
+.thief-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 14px 12px; 
+    border-bottom: 1px solid var(--border-color); 
+    margin-bottom: 8px; 
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.thief-row.focused {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--accent-red);
+}
+
+.thief-label { 
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+    font-size: 1rem; 
+    color: #ddd; 
+}
+
+.thief-toggle-group { 
+    display: flex; 
+    background: #111; 
+    border: 1px solid #333; 
+}
+
+.thief-toggle-btn { 
+    padding: 6px 20px; 
+    background: none; 
+    border: none; 
+    color: #555; 
+    cursor: pointer; 
+    font-family: inherit; 
+    text-transform: uppercase; 
+    transition: all 0.2s; 
+}
+
+.thief-toggle-btn.active { 
+    background: var(--accent-red); 
+    color: #fff; 
+    box-shadow: 0 0 10px rgba(255, 26, 26, 0.4);
+}
+
+.settings-description { 
+    padding: 35px; 
+    background: rgba(255, 255, 255, 0.01); 
+    font-style: italic; 
+    color: var(--text-dim); 
+    line-height: 1.6; 
+    border-left: 1px solid var(--border-color); 
+    font-size: 0.95rem; 
+}
+
+/* --- EXTRA MENU (LIST KARAKTER) --- */
+.extra-content-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    text-align: left;
+    margin-top: 20px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.extra-item-row {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.extra-item-row.focused {
+    border-color: var(--accent-red);
+    background: rgba(255, 26, 26, 0.04);
+}
+
+.extra-title {
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-transform: uppercase;
+    font-weight: bold;
+    min-width: 220px;
+}
+
+.extra-desc {
+    font-size: 0.95rem;
+    color: #aaaaaa;
+    font-family: Arial, sans-serif;
+    letter-spacing: 1px;
+    line-height: 1.4;
+}
+
+.back-btn { 
+    background: none; 
+    border: 1px solid var(--accent-red); 
+    color: var(--accent-red); 
+    padding: 12px 24px; 
+    font-family: 'Times New Roman', Times, serif; 
+    font-size: 1.2rem; 
+    text-transform: uppercase; 
+    letter-spacing: 3px; 
+    margin-top: auto; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: all 0.2s; 
+}
+
+.back-btn.focused, .back-btn:hover { 
+    background: var(--accent-red); 
+    color: #000; 
+    box-shadow: 0 0 15px var(--accent-red); 
+}
+
+/* --- STAGE SELECT PANEL --- */
 .intrinsics-panel { width: 90%; max-width: 1200px; z-index: 5; text-align: center; animation: panelFade 0.4s ease-out; }
 .intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 50px; text-align: left; }
 .stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; }
@@ -240,32 +414,10 @@
 .circle-wrapper { position: relative; width: 130px; height: 130px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
 .circle-wrapper::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.1); }
 .stage-circle-active { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent-red); background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%); box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4); display: flex; justify-content: center; align-items: center; font-size: 2.2rem; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #ff1a1a; cursor: pointer; transition: all 0.3s ease; }
-.stage-circle-active:hover { transform: scale(1.1); box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red); }
+.stage-circle-active.focused, .stage-circle-active:hover { transform: scale(1.1); box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red); }
 .stage-circle-locked { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #444444; background: rgba(20, 20, 20, 0.85); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; color: #555555; cursor: not-allowed; }
 .stage-label-active { text-transform: uppercase; font-size: 0.9rem; letter-spacing: 3px; color: var(--accent-red); text-shadow: 0 0 5px rgba(255, 26, 26, 0.5); margin-top: 5px; }
 .stage-label-locked { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #444444; margin-top: 5px; }
-
-/* --- PANEL OPTION --- */
-.thief-settings-panel { width: 85%; height: 80%; background: var(--panel-bg); backdrop-filter: blur(10px); border-left: 4px solid var(--accent-red); display: grid; grid-template-columns: 280px 1fr 320px; z-index: 10; box-shadow: 0 0 40px rgba(0,0,0,0.8); animation: panelSlideIn 0.3s ease-out; }
-@keyframes panelSlideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-.settings-sidebar { padding: 35px; border-right: 1px solid var(--border-color); }
-.settings-sidebar h2 { font-size: 1.6rem; letter-spacing: 3px; margin-bottom: 35px; color: #fff; text-transform: uppercase; }
-.settings-category { color: var(--text-dim); font-size: 1.1rem; margin: 20px 0; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: color 0.2s; }
-.settings-category:hover { color: #fff; }
-.settings-category.active { color: var(--accent-red); font-weight: bold; }
-.settings-main { padding: 35px; overflow-y: auto; }
-.thief-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; }
-.thief-label { text-transform: uppercase; letter-spacing: 2px; font-size: 1rem; color: #ddd; }
-.thief-toggle-group { display: flex; background: #111; border: 1px solid #333; }
-.thief-toggle-btn { padding: 5px 18px; background: none; border: none; color: #555; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.2s; }
-.thief-toggle-btn.active { background: var(--accent-red); color: #fff; }
-.upload-box { background: rgba(255, 255, 255, 0.03); border: 1px dashed #444; padding: 12px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; }
-.upload-box input[type="file"] { font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; color: #aaa; }
-.settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); font-size: 0.95rem; }
-
-.back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 10px 20px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: 25px; cursor: pointer; width: 100%; transition: all 0.2s; }
-.back-btn:hover { background: var(--accent-red); color: #000; box-shadow: 0 0 15px var(--accent-red); }
-@keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
 
 /* --- CONTROLLER/DUALSHOCK INDICATOR BAR --- */
 .gamepad-indicator-bar {
@@ -299,7 +451,6 @@
     text-transform: uppercase;
 }
 
-/* Desain Simbol Tombol Silang (X) DualShock */
 .ds-btn-cross {
     width: 24px;
     height: 24px;
@@ -314,7 +465,6 @@
     box-shadow: 0 0 10px rgba(46, 107, 189, 0.6);
 }
 
-/* Desain Simbol Tombol Bulat (O) DualShock */
 .ds-btn-circle {
     width: 24px;
     height: 24px;
@@ -328,3 +478,5 @@
     font-size: 0.85rem;
     box-shadow: 0 0 10px rgba(189, 46, 46, 0.6);
 }
+
+@keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
