@@ -9,12 +9,10 @@ const MainMenu = () => {
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
   // MANAGEMENT DEVICE INPUT
-  const [inputMode, setInputMode] = useState('keyboard'); 
+  const [inputMode, setInputMode] = useState('keyboard'); // keyboard, gamepad
   const [focusedMenuIndex, setFocusedMenuIndex] = useState(0); 
 
   // SUB-NAVIGATION INTERNAL
-  const [optionFocusArea, setOptionFocusArea] = useState('sidebar'); 
-  const [focusedRowIndex, setFocusedRowIndex] = useState(0);
   const [focusedExtraIndex, setFocusedExtraIndex] = useState(0);
   
   // STATE NOTIFIKASI KUNCI JURUS BAHASA INGGRIS
@@ -43,17 +41,17 @@ const MainMenu = () => {
     if (audioRefs.bgm.current) audioRefs.bgm.current.loop = true;
   }, []);
 
-  // Transisi Sempurna Intro ke Splash Screen (Menghitung Jeda Waktu Sinematik)
+  // Transisi Intro ke Splash Screen
   useEffect(() => {
     if (gameState === 'intro') {
       const timer = setTimeout(() => {
         setGameState('splash');
-      }, 4000); // Intro 4 detik selesai, CSS Horror-Overlay & Text Splash mulai merayap naik
+      }, 4000);
       return () => clearTimeout(timer);
     }
   }, [gameState]);
 
-  // Musik BGM Aktif Utama setelah melewati intro sinematik
+  // Musik BGM Aktif Utama
   useEffect(() => {
     if (gameState !== 'intro' && gameState !== 'splash' && audioRefs.bgm.current) {
       audioRefs.bgm.current.play().catch(() => {});
@@ -79,9 +77,10 @@ const MainMenu = () => {
     }, 1000);
   };
 
-  // KONTROL KEYBOARD ENGINE UTAMA
+  // KONTROL KEYBOARD & EVENT DETEKSI MOUSE ENGINE
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Jika menekan tombol keyboard, ganti mode display petunjuk ke keyboard
       if (inputMode !== 'keyboard') setInputMode('keyboard');
 
       if (gameState === 'splash') {
@@ -99,8 +98,6 @@ const MainMenu = () => {
         } else if (e.key === 'Enter') {
           playSfx('press');
           setGameState(menuOptions[focusedMenuIndex]);
-          if (menuOptions[focusedMenuIndex] === 'option') setFocusedRowIndex(0);
-          if (menuOptions[focusedMenuIndex] === 'extra') setFocusedExtraIndex(0);
         }
       }
 
@@ -117,7 +114,7 @@ const MainMenu = () => {
         }
       }
 
-      else if (gameState === 'option' || gameState === 'startgame' || gameState === 'credit' || gameState === 'special') {
+      else if (['option', 'startgame', 'credit', 'special'].includes(gameState)) {
         if (e.key === 'Escape') {
           playSfx('back');
           setGameState('menu');
@@ -126,6 +123,7 @@ const MainMenu = () => {
       }
     };
 
+    // Saat menggerakkan mouse, kembalikan UI indikator tombol ke Keyboard/Mouse
     const handleMouseMove = () => {
       if (inputMode !== 'keyboard') setInputMode('keyboard');
     };
@@ -138,7 +136,7 @@ const MainMenu = () => {
     };
   }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
 
-  // SYSTEM CONTROLLER GAMEPAD NAVIGATION
+  // SYSTEM CONTROLLER GAMEPAD NAVIGATION (DETEKSI PLAYSTATION STICK)
   useEffect(() => {
     let animationFrameId;
     const scanGamepads = () => {
@@ -146,8 +144,16 @@ const MainMenu = () => {
       const gp = gamepads[0];
       if (gp) {
         const now = Date.now();
+        
+        // Cek interaksi stik untuk memicu perubahan ikon global di bawah
+        const anyButtonPressed = gp.buttons.some(b => b.pressed);
+        const axesMoved = gp.axes.some(a => Math.abs(a) > 0.5);
+        if ((anyButtonPressed || axesMoved) && inputMode !== 'gamepad') {
+          setInputMode('gamepad');
+        }
+
         if (now - lastButtonAction.current > 180) {
-          if (gameState === 'splash') {
+          if (gameState === 'splash' && anyButtonPressed) {
             handleStartInteraction();
             lastButtonAction.current = now;
           }
@@ -156,12 +162,12 @@ const MainMenu = () => {
               playSfx('move'); setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length); lastButtonAction.current = now;
             } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
               playSfx('move'); setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length); lastButtonAction.current = now;
-            } else if (gp.buttons[0].pressed) {
+            } else if (gp.buttons[0].pressed) { // Cross Button PS
               playSfx('press'); setGameState(menuOptions[focusedMenuIndex]); lastButtonAction.current = now;
             }
           }
           else if (gameState === 'extra') {
-            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; }
+            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; } // Circle Button PS
             else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length); lastButtonAction.current = now; }
             else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length); lastButtonAction.current = now; }
           }
@@ -176,13 +182,25 @@ const MainMenu = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
 
-  // ALASAN CHAPTER TERKUNCI MENGGUNAKAN BAHASA INGGRIS PREMIUM
   const handleChapterClick = (chapterNum) => {
     if (chapterNum === 1) {
       playSfx('press'); setChapterAlert(''); alert('Loading Chapter 1...');
     } else {
       playSfx('back');
       setChapterAlert(`CHAPTER ${chapterNum} LOCKED: Complete the previous chapter to unlock this content.`);
+    }
+  };
+
+  // Fungsi Helper Navigasi Hover Suara khusus untuk Mouse
+  const handleMouseHoverAction = (index, type = 'menu') => {
+    if (inputMode === 'keyboard') {
+      if (type === 'menu' && focusedMenuIndex !== index) {
+        playSfx('move');
+        setFocusedMenuIndex(index);
+      } else if (type === 'extra' && focusedExtraIndex !== index) {
+        playSfx('move');
+        setFocusedExtraIndex(index);
+      }
     }
   };
 
@@ -205,7 +223,7 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 2. SCREEN SPLASH (FIXED TRANSITION & CLEAN TEXT) */}
+      {/* 2. SCREEN SPLASH */}
       {gameState === 'splash' && (
         <div className="splash-screen" onClick={handleStartInteraction}>
           <div className="horror-overlay"></div>
@@ -232,10 +250,9 @@ const MainMenu = () => {
                     textShadow: focusedMenuIndex === idx ? '0 0 15px #ff1a1a' : '',
                     letterSpacing: focusedMenuIndex === idx ? '6px' : ''
                   }}
-                  onMouseEnter={() => { if (inputMode === 'keyboard') setFocusedMenuIndex(idx); }}
+                  onMouseEnter={() => handleMouseHoverAction(idx, 'menu')}
                   onClick={() => {
                     playSfx('press'); setGameState(opt);
-                    if (opt === 'option') setOptionFocusArea('sidebar');
                   }}
                 >
                   {opt === 'startgame' && 'Start Game'}
@@ -256,11 +273,19 @@ const MainMenu = () => {
           <div className="intrinsics-title-header"><h2>DRIFTER INTRINSICS / CHAPTER SELECT</h2></div>
           <div className="stages-grid">
             <div className="stage-card">
-              <div className="circle-wrapper"><div className="stage-circle-active focused" onClick={() => handleChapterClick(1)}>1</div></div>
+              <div className="circle-wrapper">
+                <div 
+                  className="stage-circle-active focused" 
+                  onClick={() => handleChapterClick(1)}
+                  onMouseEnter={() => playSfx('move')}
+                >
+                  1
+                </div>
+              </div>
               <div className="stage-label-active">AVAILABLE</div>
             </div>
             {[2, 3, 4, 5, 6].map((num) => (
-              <div className="stage-card" key={num} onClick={() => handleChapterClick(num)}>
+              <div className="stage-card" key={num} onClick={() => handleChapterClick(num)} onMouseEnter={() => playSfx('move')}>
                 <div className="circle-wrapper">
                   <div className="stage-circle-locked">
                     <svg className="stage-lock-symbol-svg" viewBox="0 0 24 24">
@@ -286,7 +311,7 @@ const MainMenu = () => {
           <div className="settings-sidebar">
             <h2>SETTINGS</h2>
             {tabsList.map((tab) => (
-              <div key={tab} className={`settings-category ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</div>
+              <div key={tab} className={`settings-category ${activeTab === tab ? 'active' : ''}`} onMouseEnter={() => playSfx('move')} onClick={() => { playSfx('press'); setActiveTab(tab); }}>{tab}</div>
             ))}
           </div>
           <div className="settings-main">
@@ -296,7 +321,7 @@ const MainMenu = () => {
             {activeTab === 'gameplay' && <div className="thief-row"><span className="thief-label">Difficulty</span><div className="thief-toggle-group"><button className="thief-toggle-btn active">HARDCORE</button></div></div>}
             <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Apply & Save</button>
           </div>
-          <div className="settings-description"><p>System Mode: Keyboard & Mouse.</p></div>
+          <div className="settings-description"><p>System Mode: Active Dual Detection.</p></div>
         </div>
       )}
 
@@ -310,7 +335,7 @@ const MainMenu = () => {
                 <button
                   key={char.id}
                   className={`extra-character-row ${focusedExtraIndex === index ? 'focused' : ''}`}
-                  onMouseEnter={() => { if (inputMode === 'keyboard') setFocusedExtraIndex(index); }}
+                  onMouseEnter={() => handleMouseHoverAction(index, 'extra')}
                   onClick={() => playSfx('press')}
                 >
                   <svg className="extra-char-lock-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
@@ -348,18 +373,19 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* FIXED GLOBAL NAV BAR: Selalu nangkring di bawah dalam kondisi menu apa pun */}
+      {/* FIXED GLOBAL NAV BAR: Mendukung Respons Dinamis Joystick PlayStation */}
       {gameState !== 'intro' && gameState !== 'splash' && (
         <div className="global-gameplay-indicator-bar">
           {inputMode === 'keyboard' ? (
             <>
-              <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Navigate</div>
+              <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Move / Navigate</div>
+              <div className="gamepad-btn-hint"><span className="kb-btn-tag">Mouse Hover</span> Focus Item</div>
               {gameState !== 'menu' && <div className="gamepad-btn-hint"><span className="kb-btn-tag">Esc</span> Back</div>}
             </>
           ) : (
             <>
-              <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select</div>
-              <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
+              <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select Item</div>
+              <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Return / Back</div>
             </>
           )}
         </div>
