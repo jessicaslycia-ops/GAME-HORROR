@@ -8,14 +8,14 @@ const MainMenu = () => {
   const [triggerFlash, setTriggerFlash] = useState(false);
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
-  // MANAGEMENT DETEKSI DEVICE
+  // MANAGEMENT DETEKSI DEVICE INPUT
   const [inputMode, setInputMode] = useState('keyboard'); 
   const [focusedMenuIndex, setFocusedMenuIndex] = useState(0); 
 
-  // SUB-NAVIGATION JIKA BERADA DI MENU OPTION ATAU EXTRA MENGGUNAKAN STIK
+  // SUB-NAVIGATION INTERNAL
   const [optionFocusArea, setOptionFocusArea] = useState('sidebar'); // 'sidebar', 'rows', 'backBtn'
   const [focusedRowIndex, setFocusedRowIndex] = useState(0);
-  const [focusedExtraIndex, setFocusedExtraIndex] = useState(0); // Navigasi karakter di menu Extra
+  const [focusedExtraIndex, setFocusedExtraIndex] = useState(0);
 
   // Audio References
   const audioRefs = {
@@ -25,37 +25,22 @@ const MainMenu = () => {
     move: useRef(new Audio('/sounds/move.mp3')),
   };
 
-  // Susunan Game Settings Komplit ala Game AAA
+  // Susunan Game Settings
   const [settings, setSettings] = useState({
-    motionBlur: 'ON',
-    textureQuality: 'HIGH',
-    shadow: 'ULTRA',
-    antiAliasing: 'TAA',
-    brightness: '80%',
-    resolution: '1920x1080',
-    vsync: 'ON',
-    windowMode: 'FULLSCREEN',
-    masterVolume: '100%',
-    musicVolume: '80%',
-    sfxVolume: '90%',
-    voiceLanguage: 'ENGLISH',
-    difficulty: 'HARDCORE',
-    subtitles: 'ON',
-    aimAssist: 'OFF',
-    bloodEffect: 'ON'
+    motionBlur: 'ON', textureQuality: 'HIGH', shadow: 'ULTRA', antiAliasing: 'TAA',
+    brightness: '80%', resolution: '1920x1080', vsync: 'ON', windowMode: 'FULLSCREEN',
+    masterVolume: '100%', musicVolume: '80%', sfxVolume: '90%', voiceLanguage: 'ENGLISH',
+    difficulty: 'HARDCORE', subtitles: 'ON', aimAssist: 'OFF', bloodEffect: 'ON'
   });
 
   const menuOptions = ['startgame', 'extra', 'special', 'option', 'credit'];
   const tabsList = ['graphics', 'display', 'audio', 'gameplay'];
 
-  // Konten Karakter Menu Extra sesuai request
   const extraCharacters = [
     { id: 'remy', title: 'Play as Remy', desc: 'Play as remy and explore the truth behind the accident.' },
     { id: 'toppy', title: 'Play as Toppy', desc: 'Toppy will seeking the truth and try to escape.' },
     { id: 'samson', title: 'Play as Samson', desc: 'Play as Samson and his story to find out what happened to Jakarta City.' }
   ];
-
-  const getRowCount = () => 4; // Setiap tab setting berisi 4 pilihan baris
 
   const lastButtonAction = useRef(0);
 
@@ -71,7 +56,7 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // Musik BGM Otomatis Aktif di Semua Menu Utama
+  // Musik BGM Aktif
   useEffect(() => {
     if (gameState !== 'intro' && gameState !== 'splash' && audioRefs.bgm.current) {
       audioRefs.bgm.current.play().catch(() => {});
@@ -85,14 +70,71 @@ const MainMenu = () => {
     }
   };
 
-  // Switch otomatis kembali ke KEYBOARD/MOUSE saat mouse digerakkan
+  // KONTROL KEYBOARD ENGINE UTAMA (TERMASUK FIX BACK DARI EXTRA)
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (inputMode !== 'keyboard') setInputMode('keyboard');
+
+      // 1. JIKA DI SPLASH SCREEN
+      if (gameState === 'splash') {
+        handleStartInteraction();
+        return;
+      }
+
+      // 2. JIKA DI HOME MENU UTAMA
+      if (gameState === 'menu') {
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+          playSfx('move');
+          setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length);
+        } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+          playSfx('move');
+          setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length);
+        } else if (e.key === 'Enter') {
+          playSfx('press');
+          setGameState(menuOptions[focusedMenuIndex]);
+          if (menuOptions[focusedMenuIndex] === 'option') {
+            setOptionFocusArea('sidebar');
+            setFocusedRowIndex(0);
+          } else if (menuOptions[focusedMenuIndex] === 'extra') {
+            setFocusedExtraIndex(0);
+          }
+        }
+      }
+
+      // 3. JIKA DI MENU EXTRA (FIX: BISA KELUAR PAKAI ESCAPE)
+      else if (gameState === 'extra') {
+        if (e.key === 'Escape') {
+          playSfx('back');
+          setGameState('menu');
+        } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+          playSfx('move');
+          setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length);
+        } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+          playSfx('move');
+          setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length);
+        }
+      }
+
+      // 4. JIKA DI PANEL LAINNYA
+      else if (gameState === 'option' || gameState === 'startgame' || gameState === 'credit' || gameState === 'special') {
+        if (e.key === 'Escape') {
+          playSfx('back');
+          setGameState('menu');
+        }
+      }
+    };
+
     const handleMouseMove = () => {
       if (inputMode !== 'keyboard') setInputMode('keyboard');
     };
+
+    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [inputMode]);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
 
   // SYSTEM CONTROLLER NAVIGATIONS ENGINE (DUALSHOCK ENGINE V3)
   useEffect(() => {
@@ -113,26 +155,23 @@ const MainMenu = () => {
 
         if (now - lastButtonAction.current > 180) {
           
-          // FASE SPLASH SCREEN
           if (gameState === 'splash' && anyButtonPressed) {
             handleStartInteraction();
             lastButtonAction.current = now;
           }
 
-          // FASE HOME MENU UTAMA
           else if (gameState === 'menu' && inputMode === 'gamepad') {
-            if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
+            if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { 
               playSfx('move');
               setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length);
               lastButtonAction.current = now;
-            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { 
               playSfx('move');
               setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length);
               lastButtonAction.current = now;
-            } else if (gp.buttons[0].pressed) { // Tombol X (Enter)
+            } else if (gp.buttons[0].pressed) { 
               playSfx('press');
               setGameState(menuOptions[focusedMenuIndex]);
-              // Reset state area navigasi internal saat membuka menu tertentu
               if (menuOptions[focusedMenuIndex] === 'option') {
                 setOptionFocusArea('sidebar');
                 setFocusedRowIndex(0);
@@ -143,73 +182,59 @@ const MainMenu = () => {
             }
           }
 
-          // FASE OPTION PANEL (FIX NAVIGATION)
           else if (gameState === 'option' && inputMode === 'gamepad') {
             const currentTabIdx = tabsList.indexOf(activeTab);
-            const totalRows = getRowCount();
-
-            if (gp.buttons[1].pressed) { // Tombol O (Back)
+            if (gp.buttons[1].pressed) { 
               playSfx('back');
               setGameState('menu');
               lastButtonAction.current = now;
               return;
             }
 
-            // AREA SIDEBAR
             if (optionFocusArea === 'sidebar') {
-              if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
+              if (gp.buttons[13].pressed || gp.axes[1] > 0.5) {
                 playSfx('move');
                 setActiveTab(tabsList[(currentTabIdx + 1) % tabsList.length]);
                 lastButtonAction.current = now;
-              } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+              } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
                 playSfx('move');
                 setActiveTab(tabsList[(currentTabIdx - 1 + tabsList.length) % tabsList.length]);
                 lastButtonAction.current = now;
-              } else if (gp.buttons[15].pressed || gp.axes[0] > 0.5) { // Right (Masuk ke opsi setting)
+              } else if (gp.buttons[15].pressed || gp.axes[0] > 0.5) { 
                 playSfx('move');
                 setOptionFocusArea('rows');
                 setFocusedRowIndex(0);
                 lastButtonAction.current = now;
               }
             }
-
-            // AREA SETTING ROWS
             else if (optionFocusArea === 'rows') {
-              if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
+              if (gp.buttons[13].pressed || gp.axes[1] > 0.5) {
                 playSfx('move');
-                if (focusedRowIndex === totalRows - 1) {
-                  setOptionFocusArea('backBtn');
-                } else {
-                  setFocusedRowIndex(prev => prev + 1);
-                }
+                if (focusedRowIndex === 3) setOptionFocusArea('backBtn');
+                else setFocusedRowIndex(prev => prev + 1);
                 lastButtonAction.current = now;
-              } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+              } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
                 playSfx('move');
-                if (focusedRowIndex === 0) {
-                  setOptionFocusArea('sidebar');
-                } else {
-                  setFocusedRowIndex(prev => prev - 1);
-                }
+                if (focusedRowIndex === 0) setOptionFocusArea('sidebar');
+                else setFocusedRowIndex(prev => prev - 1);
                 lastButtonAction.current = now;
-              } else if (gp.buttons[14].pressed || gp.axes[0] < -0.5) { // Left (Balik ke sidebar)
+              } else if (gp.buttons[14].pressed || gp.axes[0] < -0.5) { 
                 playSfx('move');
                 setOptionFocusArea('sidebar');
                 lastButtonAction.current = now;
-              } else if (gp.buttons[0].pressed) { // Tombol X (Ganti value)
+              } else if (gp.buttons[0].pressed) { 
                 playSfx('press');
                 toggleSettingValue();
                 lastButtonAction.current = now;
               }
             }
-
-            // AREA TOMBOL APPLY DI BAWAH
             else if (optionFocusArea === 'backBtn') {
-              if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+              if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
                 playSfx('move');
                 setOptionFocusArea('rows');
-                setFocusedRowIndex(totalRows - 1);
+                setFocusedRowIndex(3);
                 lastButtonAction.current = now;
-              } else if (gp.buttons[0].pressed) { // X (Save & Exit)
+              } else if (gp.buttons[0].pressed) { 
                 playSfx('back');
                 setGameState('menu');
                 lastButtonAction.current = now;
@@ -217,24 +242,22 @@ const MainMenu = () => {
             }
           }
 
-          // FASE MENU EXTRA (NAVIGATION LIKE HOME MENU)
           else if (gameState === 'extra' && inputMode === 'gamepad') {
-            if (gp.buttons[1].pressed) { // Tombol O (Back)
+            if (gp.buttons[1].pressed) { 
               playSfx('back');
               setGameState('menu');
               lastButtonAction.current = now;
-            } else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
+            } else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { 
               playSfx('move');
               setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length);
               lastButtonAction.current = now;
-            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { 
               playSfx('move');
               setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length);
               lastButtonAction.current = now;
             }
           }
 
-          // FASE PANEL LAIN (SPECIAL, CREDIT, LEVEL SELECT)
           else if ((gameState === 'startgame' || gameState === 'special' || gameState === 'credit') && inputMode === 'gamepad') {
             if (gp.buttons[1].pressed || gp.buttons[0].pressed) { 
               playSfx('back');
@@ -287,14 +310,6 @@ const MainMenu = () => {
     }, 1000);
   };
 
-  useEffect(() => {
-    const handleKeyDown = () => {
-      if (gameState === 'splash') handleStartInteraction();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, isInteracted]);
-
   return (
     <div className="horror-game-container" style={{ backgroundImage: `url(${bgImage})` }}>
       {triggerFlash && <div className="flash-overlay"></div>}
@@ -317,7 +332,7 @@ const MainMenu = () => {
 
       {/* 2. SCREEN SPLASH */}
       {gameState === 'splash' && (
-        <div className="splash-screen" onClick={handleStartInteraction}>
+        <div className="splash-screen">
           <div className="horror-overlay"></div>
           <div className={`press-anything-text ${isInteracted ? 'interacted' : ''}`}>
             {isInteracted ? 'Accessing...' : inputMode === 'gamepad' ? 'Press Any Button' : 'Press Anything'}
@@ -339,9 +354,9 @@ const MainMenu = () => {
                 <button 
                   className="order-menu-btn"
                   style={{ 
-                    color: inputMode === 'gamepad' && focusedMenuIndex === idx ? '#ff1a1a' : '',
-                    textShadow: inputMode === 'gamepad' && focusedMenuIndex === idx ? '0 0 15px #ff1a1a' : '',
-                    letterSpacing: inputMode === 'gamepad' && focusedMenuIndex === idx ? '6px' : ''
+                    color: focusedMenuIndex === idx ? '#ff1a1a' : '',
+                    textShadow: focusedMenuIndex === idx ? '0 0 15px #ff1a1a' : '',
+                    letterSpacing: focusedMenuIndex === idx ? '6px' : ''
                   }}
                   onMouseEnter={() => {
                     if (inputMode === 'keyboard') {
@@ -381,7 +396,7 @@ const MainMenu = () => {
           <div className="stages-grid">
             <div className="stage-card">
               <div className="circle-wrapper">
-                <div className="stage-circle-active focused" onMouseEnter={() => playSfx('move')} onClick={() => alert('Memasuki Level 1...')}>1</div>
+                <div className="stage-circle-active focused" onClick={() => alert('Memasuki Level 1...')}>1</div>
               </div>
               <div className="stage-label-active">AVAILABLE</div>
             </div>
@@ -401,16 +416,12 @@ const MainMenu = () => {
       {/* 5. PANEL OPTION / SETTINGS */}
       {gameState === 'option' && (
         <div className="thief-settings-panel">
-          {/* SIDEBAR TABS */}
           <div className="settings-sidebar">
             <h2>SETTINGS</h2>
             {tabsList.map((tab) => (
               <div 
                 key={tab}
-                className={`settings-category 
-                  ${activeTab === tab ? 'active' : ''} 
-                  ${inputMode === 'gamepad' && optionFocusArea === 'sidebar' && tabsList[tabsList.indexOf(activeTab)] === tab ? 'focused' : ''}`
-                }
+                className={`settings-category ${activeTab === tab ? 'active' : ''} ${inputMode === 'gamepad' && optionFocusArea === 'sidebar' && tabsList[tabsList.indexOf(activeTab)] === tab ? 'focused' : ''}`}
                 onClick={() => { playSfx('move'); setActiveTab(tab); }}
               >
                 {tab}
@@ -418,7 +429,6 @@ const MainMenu = () => {
             ))}
           </div>
 
-          {/* MAIN SETTINGS INTERFACE */}
           <div className="settings-main">
             {activeTab === 'graphics' && (
               <>
@@ -516,14 +526,12 @@ const MainMenu = () => {
           </div>
 
           <div className="settings-description">
-            <p>
-              System Mode: {inputMode === 'gamepad' ? 'DualShock Controller' : 'Keyboard & Mouse'}.
-            </p>
+            <p>System Mode: {inputMode === 'gamepad' ? 'DualShock Controller' : 'Keyboard & Mouse'}.</p>
           </div>
         </div>
       )}
 
-      {/* 6. SCREEN EXTRAS (CINEMATIC VERTICAL SPLIT DESIGN LIKE THE ORDER) */}
+      {/* 6. SCREEN EXTRAS (CINEMATIC DESIGN LIKE THE ORDER + LOCK REDESIGN) */}
       {gameState === 'extra' && (
         <div className="aaa-extras-layout">
           <div className="order-header">
@@ -537,7 +545,7 @@ const MainMenu = () => {
               {extraCharacters.map((char, index) => (
                 <button
                   key={char.id}
-                  className={`extra-character-row ${inputMode === 'gamepad' && focusedExtraIndex === index ? 'focused' : ''}`}
+                  className={`extra-character-row ${focusedExtraIndex === index ? 'focused' : ''}`}
                   onMouseEnter={() => {
                     if (inputMode === 'keyboard') {
                       playSfx('move');
@@ -546,9 +554,14 @@ const MainMenu = () => {
                   }}
                   onClick={() => playSfx('press')}
                 >
-                  <span className="extra-char-lock-icon">🔒</span>
+                  {/* REDESIGN GEMBOK PUTIH MINIMALIS AAA VECTOR */}
+                  <svg className="extra-char-lock-svg" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  
                   <span className="extra-char-title" style={{
-                    color: inputMode === 'gamepad' && focusedExtraIndex === index ? '#ffffff' : ''
+                    color: focusedExtraIndex === index ? '#ffffff' : ''
                   }}>
                     {char.title}
                   </span>
@@ -564,6 +577,21 @@ const MainMenu = () => {
               </div>
             </div>
           </div>
+
+          {/* PETUNJUK KONTROL BAWAH LAYAR JURUS PENYELAMAT KEYBOARD / CONTROLLER */}
+          <div className="gamepad-indicator-bar left-align">
+            {inputMode === 'keyboard' ? (
+              <>
+                <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Navigate</div>
+                <div className="gamepad-btn-hint"><span className="kb-btn-tag">Esc</span> Back to Menu</div>
+              </>
+            ) : (
+              <>
+                <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select</div>
+                <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -578,7 +606,7 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 8. SCREEN CREDIT (CREATED BY NURULL) */}
+      {/* 8. SCREEN CREDIT */}
       {gameState === 'credit' && (
         <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
@@ -591,8 +619,8 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* SYMBOL BAR DUALSHOCK */}
-      {inputMode === 'gamepad' && gameState !== 'intro' && (
+      {/* GLOBAL CONTROLLER BAR (UNTUK AREA OPTION & HOME MENU) */}
+      {inputMode === 'gamepad' && gameState !== 'intro' && gameState !== 'extra' && (
         <div className="gamepad-indicator-bar">
           <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select / Change</div>
           <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
