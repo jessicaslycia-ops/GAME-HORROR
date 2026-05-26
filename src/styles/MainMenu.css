@@ -59,8 +59,6 @@
 .particle:nth-child(2) { left: 25%; width: 6px; height: 6px; animation-delay: 1.5s; animation-duration: 7s; }
 .particle:nth-child(3) { left: 45%; width: 3px; height: 3px; animation-delay: 0.5s; animation-duration: 4s; }
 .particle:nth-child(4) { left: 65%; width: 5px; height: 5px; animation-delay: 2.5s; animation-duration: 6s; }
-.particle:nth-child(5) { left: 80%; width: 4px; height: 4px; animation-delay: 1s; animation-duration: 5.5s; }
-.particle:nth-child(6) { left: 90%; width: 7px; height: 7px; animation-delay: 3s; animation-duration: 8s; }
 
 @keyframes floatUp {
     0% { transform: translateY(0) scale(1); opacity: 0; }
@@ -69,19 +67,20 @@
     100% { transform: translateY(-105vh) scale(0.5); opacity: 0; }
 }
 
-/* --- SCREEN INTRO & SPLASH --- */
+/* --- TRANSISI SINEMATIK BARU --- */
 .intro-screen {
     font-size: 2.5rem;
     letter-spacing: 12px;
     text-transform: uppercase;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-    animation: fadeInOut 4s forwards;
+    animation: fadeInOutIntro 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     z-index: 5;
 }
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: scale(0.95); }
-    30%, 70% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(1.05); }
+
+@keyframes fadeInOutIntro {
+    0% { opacity: 0; transform: scale(0.96); filter: blur(4px); }
+    25%, 70% { opacity: 1; transform: scale(1); filter: blur(0px); }
+    100% { opacity: 0; transform: scale(1.02); filter: blur(2px); }
 }
 
 .splash-screen {
@@ -90,40 +89,56 @@
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    padding-bottom: 15%;
+    padding-bottom: 18%;
     z-index: 3;
     cursor: pointer;
     position: relative;
 }
 
+/* Ambient Red Bleed Overlay (Efek memerah perlahan) */
 .horror-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    background: radial-gradient(circle, rgba(120, 10, 10, 0.2) 0%, rgba(15, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.99) 100%);
+    background: radial-gradient(circle, rgba(160, 4, 4, 0.25) 0%, rgba(20, 0, 0, 0.8) 50%, rgba(0, 0, 0, 1) 100%);
     z-index: 1;
+    opacity: 0;
+    animation: redBleedTransition 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 3.8s forwards;
 }
 
+@keyframes redBleedTransition {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Kemunculan Lembut Tulisan Press Anything setelah memerah */
 .press-anything-text {
     font-size: 2.2rem;
-    letter-spacing: 8px;
+    letter-spacing: 10px;
     text-transform: uppercase;
     color: #ffffff;
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-    animation: pulseText 1.5s infinite;
-    transition: all 0.1s ease-out;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    opacity: 0;
     z-index: 2;
+    animation: fadeInSplashText 2s ease-out 5s forwards, pulseText 1.5s infinite 7s ease-in-out;
+}
+
+@keyframes fadeInSplashText {
+    from { opacity: 0; transform: scale(0.98); filter: blur(3px); }
+    to { opacity: 1; transform: scale(1); filter: blur(0px); }
 }
 
 .press-anything-text.interacted {
     color: var(--accent-red) !important;
     text-shadow: 0 0 30px var(--accent-red);
-    animation: none;
-    transform: scale(1.1);
+    animation: none !important;
+    transform: scale(1.08);
+    opacity: 1 !important;
+    transition: all 0.2s cubic-bezier(0.15, 0.85, 0.35, 1);
 }
 
 @keyframes pulseText {
-    0%, 100% { opacity: 0.5; transform: scale(0.98); }
+    0%, 100% { opacity: 0.6; transform: scale(0.99); }
     50% { opacity: 1; transform: scale(1); }
 }
 
@@ -133,7 +148,7 @@
     background: #ffffff;
     z-index: 99;
     pointer-events: none;
-    animation: flashFade 1.2s forwards ease-out;
+    animation: flashFade 1s forwards ease-out;
 }
 @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
 
@@ -205,7 +220,7 @@
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
-/* --- PREMIUM AAA EXTRAS MENU DESIGN --- */
+/* --- EXTRAS LAYOUT --- */
 .aaa-extras-layout {
     position: absolute;
     left: 8%;
@@ -213,7 +228,7 @@
     z-index: 5;
     text-align: left;
     width: 80%;
-    height: 70vh; /* Dikunci agar bar panduan menetap di bawah kontainer layout */
+    height: 65vh;
     display: flex;
     flex-direction: column;
     animation: slideFromLeft 0.6s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
@@ -224,7 +239,6 @@
     grid-template-columns: 450px 1fr;
     gap: 80px;
     margin-top: 40px;
-    flex-grow: 1;
 }
 
 .extras-list-container {
@@ -247,16 +261,9 @@
     width: 100%;
 }
 
-/* Simbol Gembok Vektor Putih Minimalis */
 .extra-char-lock-svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: #666666;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: all 0.2s ease;
+    width: 18px; height: 18px; fill: none; stroke: #666666; stroke-width: 2.2;
+    stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s ease;
 }
 
 .extra-char-title {
@@ -277,8 +284,7 @@
 
 .extra-character-row:hover .extra-char-lock-svg,
 .extra-character-row.focused .extra-char-lock-svg {
-    stroke: #ffffff;
-    filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
+    stroke: #ffffff; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
 }
 
 .extras-description-panel {
@@ -297,53 +303,29 @@
 }
 
 .extras-desc-title-sub {
-    font-size: 0.9rem;
-    color: var(--accent-red);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-bottom: 5px;
+    font-size: 0.9rem; color: var(--accent-red); letter-spacing: 3px;
+    text-transform: uppercase; margin-bottom: 5px;
 }
 
 .extras-desc-main-text {
-    font-family: Arial, sans-serif;
-    font-size: 1rem;
-    color: #cccccc;
-    line-height: 1.6;
-    letter-spacing: 1px;
-    max-width: 500px;
+    font-family: Arial, sans-serif; font-size: 1rem; color: #cccccc;
+    line-height: 1.6; letter-spacing: 1px; max-width: 500px;
 }
 
-/* --- INDICATOR BAR MENTOK DI BAWAH LAYAR --- */
-.gamepad-indicator-bar {
+/* --- PERBAIKAN NAV BAR BARU: GLOBAL FIX DI BAWAH LAYAR MENTOK MURNI --- */
+.global-gameplay-indicator-bar {
     position: absolute;
-    bottom: 30px;
-    right: 8%;
+    bottom: 40px;
+    left: 8%;
     display: flex;
     gap: 35px;
-    background: rgba(0, 0, 0, 0.55);
-    padding: 10px 28px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(8px);
-    z-index: 10;
-    animation: barFadeIn 0.4s ease-out;
+    z-index: 100;
+    pointer-events: none;
+    animation: barFadeInGlobal 0.5s ease-out;
 }
 
-/* Perbaikan Posisi Mentok Bawah Layar di Menu Extra */
-.gamepad-indicator-bar.left-align {
-    position: relative;
-    bottom: 0px;
-    left: 0px;
-    right: auto;
-    margin-top: auto; /* Mendorong paksa komponen ke ujung paling bawah layout */
-    background: none;
-    border: none;
-    backdrop-filter: none;
-    padding: 20px 0 0 0;
-}
-
-@keyframes barFadeIn {
-    from { opacity: 0; transform: translateY(12px); }
+@keyframes barFadeInGlobal {
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -354,93 +336,68 @@
     font-family: Arial, sans-serif;
     font-size: 0.85rem;
     letter-spacing: 2px;
-    color: #bbbbbb;
+    color: #999999;
     text-transform: uppercase;
     font-weight: bold;
 }
 
 .kb-btn-tag {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 4px 10px;
     border-radius: 4px;
     font-size: 0.8rem;
     font-family: monospace;
-    box-shadow: 0 2px 0px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 0px rgba(255, 255, 255, 0.1);
 }
 
 .ds-btn-cross {
     width: 24px; height: 24px; background: #2e6bbd; color: #ffffff; border-radius: 50%;
     display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem;
-    box-shadow: 0 0 10px rgba(46, 107, 189, 0.6);
 }
 
 .ds-btn-circle {
     width: 24px; height: 24px; background: #bd2e2e; color: #ffffff; border-radius: 50%;
     display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem;
-    box-shadow: 0 0 10px rgba(189, 46, 46, 0.6);
 }
 
-/* --- CHAPTER/STAGE SELECT PANEL & NEW REDESIGN BUTTON --- */
+/* --- CHAPTER SELECT --- */
 .intrinsics-panel { 
-    width: 90%; 
-    max-width: 1200px; 
-    z-index: 5; 
-    text-align: center; 
-    display: flex;
-    flex-direction: column;
-    height: 75vh;
-    justify-content: space-between;
+    width: 90%; max-width: 1200px; z-index: 5; text-align: center; 
+    display: flex; flex-direction: column; height: 68vh; justify-content: space-between;
     animation: panelFade 0.4s ease-out; 
 }
-.intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 30px; text-align: left; }
-.stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; }
+.intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; text-align: left; }
+.stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; margin-top: 20px; }
 .stage-card { display: flex; flex-direction: column; align-items: center; position: relative; }
-.circle-wrapper { position: relative; width: 130px; height: 130px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+.circle-wrapper { position: relative; width: 130px; height: 130px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
 .circle-wrapper::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.1); }
 
 .stage-circle-active { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent-red); background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%); box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4); display: flex; justify-content: center; align-items: center; font-size: 2.2rem; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #ff1a1a; cursor: pointer; transition: all 0.2s ease; }
 .stage-circle-active.focused, .stage-circle-active:hover { transform: scale(1.1); box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red); }
 
-/* Tombol Chapter Terkunci Berubah Menjadi Simbol Vektor Putih */
 .stage-circle-locked { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #333333; background: rgba(15, 15, 15, 0.9); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease; }
 .stage-circle-locked.focused, .stage-circle-locked:hover { border-color: #666; background: rgba(30, 30, 30, 0.9); transform: scale(1.05); }
 
-.stage-lock-symbol-svg { width: 28px; height: 28px; fill: none; stroke: #666666; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+.stage-lock-symbol-svg { width: 26px; height: 26px; fill: none; stroke: #555555; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
 .stage-circle-locked:hover .stage-lock-symbol-svg, .stage-circle-locked.focused .stage-lock-symbol-svg { stroke: #ffffff; filter: drop-shadow(0 0 4px #fff); }
 
 .stage-label-active { text-transform: uppercase; font-size: 0.9rem; letter-spacing: 3px; color: var(--accent-red); text-shadow: 0 0 5px rgba(255, 26, 26, 0.5); margin-top: 5px; }
 .stage-label-locked { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #555555; margin-top: 5px; }
 
-/* Alert Pemberitahuan Kunci AAA */
+/* Alert Eror Bahasa Inggris */
 .chapter-lock-alert-box {
-    height: 40px;
-    color: var(--accent-red);
-    font-size: 1.1rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-top: 20px;
-    font-weight: bold;
+    height: 35px; color: var(--accent-red); font-size: 1rem; letter-spacing: 2px;
+    text-transform: uppercase; margin-top: 15px; font-weight: bold;
     text-shadow: 0 0 8px rgba(255, 26, 26, 0.4);
-    animation: alertPulse 0.3s ease-out;
 }
-@keyframes alertPulse { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* REDESIGN: Tombol Hapus Background Merah, Ganti Jadi Border Merah Saja & Geser Kebawah */
 .back-btn-aaa-border {
-    background: transparent;
-    border: 2px solid var(--accent-red);
-    color: #ffffff;
-    padding: 14px 35px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    cursor: pointer;
-    width: fit-content;
-    margin: 40px auto 0 auto; /* Memberi ruang jarak ke bawah */
-    transition: all 0.2s ease;
+    background: transparent; border: 2px solid var(--accent-red); color: #ffffff;
+    padding: 12px 35px; font-family: 'Times New Roman', Times, serif; font-size: 1.05rem;
+    text-transform: uppercase; letter-spacing: 4px; cursor: pointer; width: fit-content;
+    margin: 15px auto 0 auto; transition: all 0.2s ease;
     box-shadow: inset 0 0 10px rgba(255, 26, 26, 0.05);
 }
 .back-btn-aaa-border:hover, .back-btn-aaa-border.focused {
@@ -449,7 +406,7 @@
     text-shadow: 0 0 8px #ffffff;
 }
 
-/* --- OPTION/SETTINGS PANEL --- */
+/* --- SETTINGS --- */
 .thief-settings-panel { 
     width: 85%; height: 80%; background: var(--panel-bg); backdrop-filter: blur(10px); 
     border-left: 4px solid var(--accent-red); display: grid; grid-template-columns: 280px 1fr 320px; 
@@ -462,15 +419,12 @@
 .settings-category.active { color: var(--accent-red) !important; font-weight: bold; background: rgba(255, 26, 26, 0.1); border-left: 3px solid var(--accent-red); }
 .settings-main { padding: 35px; overflow-y: auto; display: flex; flex-direction: column; }
 .thief-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px; border-radius: 4px; transition: background 0.2s; }
-.thief-row.focused { background: rgba(255, 255, 255, 0.05); border-bottom: 1px solid var(--accent-red); }
 .thief-label { text-transform: uppercase; letter-spacing: 2px; font-size: 1rem; color: #ddd; }
 .thief-toggle-group { display: flex; background: #111; border: 1px solid #333; }
 .thief-toggle-btn { padding: 6px 20px; background: none; border: none; color: #555; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.2s; }
 .thief-toggle-btn.active { background: var(--accent-red); color: #fff; box-shadow: 0 0 10px rgba(255, 26, 26, 0.4); }
 .settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); font-size: 0.95rem; }
-
 .back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 12px 24px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: auto; cursor: pointer; width: 100%; transition: all 0.2s; }
-.back-btn.focused, .back-btn:hover { background: var(--accent-red); color: #000; box-shadow: 0 0 15px var(--accent-red); }
 
 @keyframes panelSlideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
