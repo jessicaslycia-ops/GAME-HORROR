@@ -3,14 +3,18 @@ import '../styles/MainMenu.css';
 
 const MainMenu = () => {
   const [gameState, setGameState] = useState('intro'); // intro, splash, menu, startgame, option, credit, extra, special
-  const [activeTab, setActiveTab] = useState('graphics');
+  const [activeTab, setActiveTab] = useState('graphics'); // graphics, display, audio, gameplay
   const [isInteracted, setIsInteracted] = useState(false);
   const [triggerFlash, setTriggerFlash] = useState(false);
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
-  // STATE UNTUK INPUT DEVICE CONTROLLER
-  const [inputMode, setInputMode] = useState('keyboard'); // keyboard atau gamepad
-  const [focusedMenuIndex, setFocusedMenuIndex] = useState(0); // Indeks menu yang sedang dipilih lewat stik
+  // MANAGEMENT DETEKSI DEVICE
+  const [inputMode, setInputMode] = useState('keyboard'); 
+  const [focusedMenuIndex, setFocusedMenuIndex] = useState(0); 
+
+  // SUB-NAVIGATION JIKA BERADA DI MENU OPTION ATAU EXTRA MENGGUNAKAN STIK
+  const [optionFocusArea, setOptionFocusArea] = useState('sidebar'); // 'sidebar', 'rows', 'backBtn'
+  const [focusedRowIndex, setFocusedRowIndex] = useState(0);
 
   // Audio References
   const audioRefs = {
@@ -20,30 +24,49 @@ const MainMenu = () => {
     move: useRef(new Audio('/sounds/move.mp3')),
   };
 
-  const [audioNames, setAudioNames] = useState({
-    press: 'press.mp3 (System)',
-    back: 'back.mp3 (System)',
-    bgm: 'bgm.mp3 (System)',
-    move: 'move.mp3 (System)',
-  });
-
+  // Susunan Game Settings Komplit layaknya Game AAA
   const [settings, setSettings] = useState({
+    // Graphic Tab
     motionBlur: 'ON',
-    shadow: 'HIGH',
-    cinematic: 'ON',
+    textureQuality: 'HIGH',
+    shadow: 'ULTRA',
+    antiAliasing: 'TAA',
+    // Display Tab
+    brightness: '80%',
+    resolution: '1920x1080',
+    vsync: 'ON',
+    windowMode: 'FULLSCREEN',
+    // Audio Tab
+    masterVolume: '100%',
+    musicVolume: '80%',
+    sfxVolume: '90%',
+    voiceLanguage: 'ENGLISH',
+    // Gameplay Tab
+    difficulty: 'HARDCORE',
+    subtitles: 'ON',
+    aimAssist: 'OFF',
+    bloodEffect: 'ON'
   });
 
-  // Susunan daftar menu utama untuk dicocokkan dengan navigasi stik
   const menuOptions = ['startgame', 'extra', 'special', 'option', 'credit'];
+  const tabsList = ['graphics', 'display', 'audio', 'gameplay'];
 
-  // Debounce ref untuk menahan kepekaan tombol stik agar tidak kelewatan saat dipencet sekali
+  // Memetakan jumlah baris pengaturan pada masing-masing tab Option
+  const getRowCount = () => {
+    if (activeTab === 'graphics') return 4;
+    if (activeTab === 'display') return 4;
+    if (activeTab === 'audio') return 4;
+    if (activeTab === 'gameplay') return 4;
+    return 0;
+  };
+
   const lastButtonAction = useRef(0);
 
   useEffect(() => {
     if (audioRefs.bgm.current) audioRefs.bgm.current.loop = true;
   }, []);
 
-  // Fase 1: Intro Otomatis (4 Detik)
+  // Intro Otomatis (4 Detik)
   useEffect(() => {
     if (gameState === 'intro') {
       const timer = setTimeout(() => setGameState('splash'), 4000);
@@ -51,14 +74,13 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // Musik BGM otomatis aktif berulang di Home Menu & Panel Utama
+  // Musik BGM Otomatis Aktif
   useEffect(() => {
-    if ((gameState === 'menu' || gameState === 'startgame' || gameState === 'option') && audioRefs.bgm.current) {
+    if ((gameState === 'menu' || gameState === 'startgame' || gameState === 'option' || gameState === 'extra' || gameState === 'special' || gameState === 'credit') && audioRefs.bgm.current) {
       audioRefs.bgm.current.play().catch(() => {});
     }
   }, [gameState]);
 
-  // Trigger Efek Suara
   const playSfx = (type) => {
     if (audioRefs[type].current) {
       audioRefs[type].current.currentTime = 0;
@@ -69,25 +91,22 @@ const MainMenu = () => {
   // Switch otomatis kembali ke KEYBOARD/MOUSE saat mouse digerakkan
   useEffect(() => {
     const handleMouseMove = () => {
-      if (inputMode !== 'keyboard') {
-        setInputMode('keyboard');
-      }
+      if (inputMode !== 'keyboard') setInputMode('keyboard');
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [inputMode]);
 
-  // LOGIKA UTAMA DETEKSI GAMEPAD / DUALSHOCK
+  // SYSTEM CONTROLLER NAVIGATIONS (DUALSHOCK ENGINE V2)
   useEffect(() => {
     let animationFrameId;
 
     const scanGamepads = () => {
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-      const gp = gamepads[0]; // Ambil stik pertama yang terhubung
+      const gp = gamepads[0];
 
       if (gp) {
         const now = Date.now();
-        // Cek jika ada tombol stik apa pun yang ditekan, ubah mode otomatis ke Gamepad
         const anyButtonPressed = gp.buttons.some(b => b.pressed);
         const axesMoved = gp.axes.some(a => Math.abs(a) > 0.5);
 
@@ -95,41 +114,116 @@ const MainMenu = () => {
           setInputMode('gamepad');
         }
 
-        // Berikan delay waktu (cooldown 200ms) agar navigasi stik tidak terlalu sensitif/liar
-        if (now - lastButtonAction.current > 200) {
+        if (now - lastButtonAction.current > 180) {
           
-          // 1. INPUT PADA SCREEN: SPLASH SCREEN (PRESS ANYTHING)
+          // FASE SPLASH SCREEN
           if (gameState === 'splash' && anyButtonPressed) {
             handleStartInteraction();
             lastButtonAction.current = now;
           }
 
-          // 2. INPUT PADA SCREEN: HOME MENU
+          // FASE HOME MENU UTAMA
           else if (gameState === 'menu' && inputMode === 'gamepad') {
-            // Arah Bawah (D-Pad atau Analog Kiri)
-            if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { 
+            if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
               playSfx('move');
               setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length);
               lastButtonAction.current = now;
-            }
-            // Arah Atas (D-Pad atau Analog Kiri)
-            else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { 
+            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
               playSfx('move');
               setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length);
               lastButtonAction.current = now;
-            }
-            // Tombol X (DualShock Button 0) untuk Konfirmasi / Enter
-            else if (gp.buttons[0].pressed) {
+            } else if (gp.buttons[0].pressed) { // Cross Button (X)
               playSfx('press');
               setGameState(menuOptions[focusedMenuIndex]);
+              // Reset area fokus jika membuka panel Option
+              if (menuOptions[focusedMenuIndex] === 'option') {
+                setOptionFocusArea('sidebar');
+                setFocusedRowIndex(0);
+              }
               lastButtonAction.current = now;
             }
           }
 
-          // 3. INPUT PADA SCREEN: START GAME, OPTION, DLL (UNTUK TOMBOL KEMBALI)
-          else if ((gameState === 'startgame' || gameState === 'option' || gameState === 'extra' || gameState === 'special' || gameState === 'credit') && inputMode === 'gamepad') {
-            // Tombol BULAT (DualShock Button 1) untuk Kembali / Cancel
+          // FASE OPTION MENU PANEL (FULL DUALSHOCK FIX)
+          else if (gameState === 'option' && inputMode === 'gamepad') {
+            const currentTabIdx = tabsList.indexOf(activeTab);
+            const totalRows = getRowCount();
+
+            // Tombol Bulat (O) untuk Keluar ke Menu Utama
             if (gp.buttons[1].pressed) {
+              playSfx('back');
+              setGameState('menu');
+              lastButtonAction.current = now;
+              return;
+            }
+
+            // AREA 1: SIDEBAR (PILIH TAB GRAPHIC, DISPLAY, DLL)
+            if (optionFocusArea === 'sidebar') {
+              if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
+                playSfx('move');
+                const nextTab = tabsList[(currentTabIdx + 1) % tabsList.length];
+                setActiveTab(nextTab);
+                lastButtonAction.current = now;
+              } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+                playSfx('move');
+                const prevTab = tabsList[(currentTabIdx - 1 + tabsList.length) % tabsList.length];
+                setActiveTab(prevTab);
+                lastButtonAction.current = now;
+              } else if (gp.buttons[15].pressed || gp.axes[0] > 0.5) { // Right (Pindah fokus ke Kanan / Isi Setting)
+                playSfx('move');
+                setOptionFocusArea('rows');
+                setFocusedRowIndex(0);
+                lastButtonAction.current = now;
+              }
+            }
+
+            // AREA 2: ROWS (MENGUBAH VALUE SETTING DI DALAM TAB)
+            else if (optionFocusArea === 'rows') {
+              if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { // Down
+                playSfx('move');
+                if (focusedRowIndex === totalRows - 1) {
+                  setOptionFocusArea('backBtn'); // Turun lagi masuk ke tombol Save
+                } else {
+                  setFocusedRowIndex(prev => prev + 1);
+                }
+                lastButtonAction.current = now;
+              } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up
+                playSfx('move');
+                if (focusedRowIndex === 0) {
+                  setOptionFocusArea('sidebar'); // Naik paling atas balik ke Sidebar Tab
+                } else {
+                  setFocusedRowIndex(prev => prev - 1);
+                }
+                lastButtonAction.current = now;
+              } else if (gp.buttons[14].pressed || gp.axes[0] < -0.5) { // Left (Kembali sorot sidebar)
+                playSfx('move');
+                setOptionFocusArea('sidebar');
+                lastButtonAction.current = now;
+              } else if (gp.buttons[0].pressed) { // Tombol X untuk ganti-ganti settingan
+                playSfx('press');
+                toggleSettingValue();
+                lastButtonAction.current = now;
+              }
+            }
+
+            // AREA 3: TOMBOL SAVE/BACK DI BAGIAN BAWAH
+            else if (optionFocusArea === 'backBtn') {
+              if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { // Up (Naik kembali ke baris setting)
+                playSfx('move');
+                setOptionFocusArea('rows');
+                setFocusedRowIndex(totalRows - 1);
+                lastButtonAction.current = now;
+              } else if (gp.buttons[0].pressed) { // X Button untuk Save & Exit
+                playSfx('back');
+                setGameState('menu');
+                lastButtonAction.current = now;
+              }
+            }
+          }
+
+          // FASE PANEL LAIN (EXTRA, CREDIT, SPECIAL, LEVEL SELECT)
+          else if ((gameState === 'startgame' || gameState === 'extra' || gameState === 'special' || gameState === 'credit') && inputMode === 'gamepad') {
+            if (gp.buttons[1].pressed || gp.buttons[0].pressed) { // X atau O untuk kembali ke Menu Utama
               playSfx('back');
               setGameState('menu');
               lastButtonAction.current = now;
@@ -143,15 +237,38 @@ const MainMenu = () => {
 
     animationFrameId = requestAnimationFrame(scanGamepads);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, inputMode, focusedMenuIndex]);
+  }, [gameState, inputMode, focusedMenuIndex, optionFocusArea, focusedRowIndex, activeTab, settings]);
 
-  // Aksi Klik atau Tekan Keyboard Manual
+  // Fungsi Pembantu Merubah Nilai Setting Secara Bergantian Menggunakan Stik/Mouse
+  const toggleSettingValue = () => {
+    if (activeTab === 'graphics') {
+      if (focusedRowIndex === 0) setSettings(p => ({...p, motionBlur: p.motionBlur === 'ON' ? 'OFF' : 'ON'}));
+      if (focusedRowIndex === 1) setSettings(p => ({...p, textureQuality: p.textureQuality === 'HIGH' ? 'MEDIUM' : p.textureQuality === 'MEDIUM' ? 'LOW' : 'HIGH'}));
+      if (focusedRowIndex === 2) setSettings(p => ({...p, shadow: p.shadow === 'ULTRA' ? 'HIGH' : p.shadow === 'HIGH' ? 'LOW' : 'ULTRA'}));
+      if (focusedRowIndex === 3) setSettings(p => ({...p, antiAliasing: p.antiAliasing === 'TAA' ? 'FXAA' : p.antiAliasing === 'FXAA' ? 'OFF' : 'TAA'}));
+    } else if (activeTab === 'display') {
+      if (focusedRowIndex === 0) setSettings(p => ({...p, brightness: p.brightness === '80%' ? '100%' : p.brightness === '100%' ? '50%' : '80%'}));
+      if (focusedRowIndex === 1) setSettings(p => ({...p, resolution: p.resolution === '1920x1080' ? '2560x1440' : p.resolution === '2560x1440' ? '1280x720' : '1920x1080'}));
+      if (focusedRowIndex === 2) setSettings(p => ({...p, vsync: p.vsync === 'ON' ? 'OFF' : 'ON'}));
+      if (focusedRowIndex === 3) setSettings(p => ({...p, windowMode: p.windowMode === 'FULLSCREEN' ? 'WINDOWED' : 'FULLSCREEN'}));
+    } else if (activeTab === 'audio') {
+      if (focusedRowIndex === 0) setSettings(p => ({...p, masterVolume: p.masterVolume === '100%' ? '50%' : p.masterVolume === '50%' ? '0%' : '100%'}));
+      if (focusedRowIndex === 1) setSettings(p => ({...p, musicVolume: p.musicVolume === '80%' ? '100%' : p.musicVolume === '100%' ? '0%' : '80%'}));
+      if (focusedRowIndex === 2) setSettings(p => ({...p, sfxVolume: p.sfxVolume === '90%' ? '100%' : p.sfxVolume === '100%' ? '20%' : '90%'}));
+      if (focusedRowIndex === 3) setSettings(p => ({...p, voiceLanguage: p.voiceLanguage === 'ENGLISH' ? 'JAPANESE' : p.voiceLanguage === 'JAPANESE' ? 'INDONESIAN' : 'ENGLISH'}));
+    } else if (activeTab === 'gameplay') {
+      if (focusedRowIndex === 0) setSettings(p => ({...p, difficulty: p.difficulty === 'HARDCORE' ? 'EASY' : p.difficulty === 'EASY' ? 'NORMAL' : 'HARDCORE'}));
+      if (focusedRowIndex === 1) setSettings(p => ({...p, subtitles: p.subtitles === 'ON' ? 'OFF' : 'ON'}));
+      if (focusedRowIndex === 2) setSettings(p => ({...p, aimAssist: p.aimAssist === 'OFF' ? 'ON' : 'OFF'}));
+      if (focusedRowIndex === 3) setSettings(p => ({...p, bloodEffect: p.bloodEffect === 'ON' ? 'OFF' : 'ON'}));
+    }
+  };
+
   const handleStartInteraction = () => {
     if (isInteracted) return;
     setIsInteracted(true);
     playSfx('press');
     setTriggerFlash(true);
-
     setTimeout(() => {
       setGameState('menu');
       setTriggerFlash(false);
@@ -166,29 +283,11 @@ const MainMenu = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState, isInteracted]);
 
-  const handleFileUpload = (e, type) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    if (type === 'background-img') {
-      setBgImage(url);
-    } else {
-      if (audioRefs[type].current) audioRefs[type].current.pause();
-      audioRefs[type].current = new Audio(url);
-      setAudioNames(prev => ({ ...prev, [type]: file.name }));
-      if (type === 'bgm') {
-        audioRefs[type].current.loop = true;
-        audioRefs[type].current.play();
-      }
-    }
-  };
-
   return (
     <div className="horror-game-container" style={{ backgroundImage: `url(${bgImage})` }}>
       {triggerFlash && <div className="flash-overlay"></div>}
       {gameState !== 'intro' && <div className="glitch-bg"></div>}
 
-      {/* Partikel Efek Horor */}
       {gameState !== 'intro' && (
         <div className="particles-container">
           <div className="particle"></div><div className="particle"></div>
@@ -241,6 +340,10 @@ const MainMenu = () => {
                   onClick={() => {
                     playSfx('press');
                     setGameState(opt);
+                    if (opt === 'option') {
+                      setOptionFocusArea('sidebar');
+                      setFocusedRowIndex(0);
+                    }
                   }}
                 >
                   {opt === 'startgame' && 'Start Game'}
@@ -255,7 +358,7 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 4. SCREEN CHAPTER / STAGE SELECT */}
+      {/* 4. SCREEN CHAPTER SELECT */}
       {gameState === 'startgame' && (
         <div className="intrinsics-panel">
           <div className="intrinsics-title-header">
@@ -264,7 +367,7 @@ const MainMenu = () => {
           <div className="stages-grid">
             <div className="stage-card">
               <div className="circle-wrapper">
-                <div className="stage-circle-active" onMouseEnter={() => playSfx('move')} onClick={() => alert('Memasuki Level 1...')}>1</div>
+                <div className="stage-circle-active focused" onMouseEnter={() => playSfx('move')} onClick={() => alert('Memasuki Level 1...')}>1</div>
               </div>
               <div className="stage-label-active">AVAILABLE</div>
             </div>
@@ -275,74 +378,193 @@ const MainMenu = () => {
               </div>
             ))}
           </div>
-          <button className="back-btn" style={{ width: '250px', margin: '60px auto 0' }} onClick={() => { playSfx('back'); setGameState('menu'); }}>
+          <button className="back-btn focused" onClick={() => { playSfx('back'); setGameState('menu'); }}>
             Return To Menu
           </button>
         </div>
       )}
 
-      {/* 5. PANEL SETTING (OPTION) */}
+      {/* 5. PANEL SETTING / OPTION (COMPLETE REMAKE) */}
       {gameState === 'option' && (
         <div className="thief-settings-panel">
+          {/* SIDEBAR TABS */}
           <div className="settings-sidebar">
             <h2>SETTINGS</h2>
-            <div className={`settings-category ${activeTab === 'graphics' ? 'active' : ''}`} onClick={() => { playSfx('move'); setActiveTab('graphics'); }}>Graphics & Visual</div>
-            <div className={`settings-category ${activeTab === 'audio' ? 'active' : ''}`} onClick={() => { playSfx('move'); setActiveTab('audio'); }}>Audio & Media</div>
+            {tabsList.map((tab) => (
+              <div 
+                key={tab}
+                className={`settings-category 
+                  ${activeTab === tab ? 'active' : ''} 
+                  ${inputMode === 'gamepad' && optionFocusArea === 'sidebar' && tabsList[tabsList.indexOf(activeTab)] === tab ? 'focused' : ''}`
+                }
+                onClick={() => { playSfx('move'); setActiveTab(tab); }}
+              >
+                {tab}
+              </div>
+            ))}
           </div>
+
+          {/* MAIN CONFIGURATION CONTENT */}
           <div className="settings-main">
             {activeTab === 'graphics' && (
               <>
-                <div className="thief-row">
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 0 ? 'focused' : ''}`}>
                   <span className="thief-label">Motion Blur</span>
                   <div className="thief-toggle-group">
-                    <button className={`thief-toggle-btn ${settings.motionBlur === 'ON' ? 'active' : ''}`} onClick={() => setSettings({...settings, motionBlur: 'ON'})}>ON</button>
-                    <button className={`thief-toggle-btn ${settings.motionBlur === 'OFF' ? 'active' : ''}`} onClick={() => setSettings({...settings, motionBlur: 'OFF'})}>OFF</button>
+                    <button className={`thief-toggle-btn ${settings.motionBlur === 'ON' ? 'active' : ''}`}>ON</button>
+                    <button className={`thief-toggle-btn ${settings.motionBlur === 'OFF' ? 'active' : ''}`}>OFF</button>
                   </div>
                 </div>
-                <div className="thief-row">
-                  <span className="thief-label">Cinematic Grain</span>
-                  <div className="thief-toggle-group">
-                    <button className={`thief-toggle-btn ${settings.cinematic === 'ON' ? 'active' : ''}`} onClick={() => setSettings({...settings, cinematic: 'ON'})}>ON</button>
-                    <button className={`thief-toggle-btn ${settings.cinematic === 'OFF' ? 'active' : ''}`} onClick={() => setSettings({...settings, cinematic: 'OFF'})}>OFF</button>
-                  </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 1 ? 'focused' : ''}`}>
+                  <span className="thief-label">Texture Quality</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.textureQuality}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 2 ? 'focused' : ''}`}>
+                  <span className="thief-label">Shadow Maps</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.shadow}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 3 ? 'focused' : ''}`}>
+                  <span className="thief-label">Anti-Aliasing</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.antiAliasing}</button></div>
                 </div>
               </>
             )}
-            {activeTab === 'audio' && (
-              <div className="thief-row" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                <span className="thief-label">Background Music</span>
-                <small style={{ color: '#666' }}>Current: {audioNames.bgm}</small>
-                <div className="upload-box" style={{ width: '100%' }}><input type="file" accept="audio/*" onChange={(e) => handleFileUpload(e, 'bgm')} /></div>
-              </div>
+
+            {activeTab === 'display' && (
+              <>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 0 ? 'focused' : ''}`}>
+                  <span className="thief-label">Screen Brightness</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.brightness}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 1 ? 'focused' : ''}`}>
+                  <span className="thief-label">Resolution</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.resolution}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 2 ? 'focused' : ''}`}>
+                  <span className="thief-label">V-Sync</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.vsync}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 3 ? 'focused' : ''}`}>
+                  <span className="thief-label">Display Mode</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.windowMode}</button></div>
+                </div>
+              </>
             )}
-            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Apply & Save</button>
+
+            {activeTab === 'audio' && (
+              <>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 0 ? 'focused' : ''}`}>
+                  <span className="thief-label">Master Volume</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.masterVolume}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 1 ? 'focused' : ''}`}>
+                  <span className="thief-label">Music Sound</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.musicVolume}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 2 ? 'focused' : ''}`}>
+                  <span className="thief-label">SFX Dynamic</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.sfxVolume}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 3 ? 'focused' : ''}`}>
+                  <span className="thief-label">Voice Dub Language</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.voiceLanguage}</button></div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'gameplay' && (
+              <>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 0 ? 'focused' : ''}`}>
+                  <span className="thief-label">Difficulty</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.difficulty}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 1 ? 'focused' : ''}`}>
+                  <span className="thief-label">In-Game Subtitles</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.subtitles}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 2 ? 'focused' : ''}`}>
+                  <span className="thief-label">Aim Assist Engine</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.aimAssist}</button></div>
+                </div>
+                <div className={`thief-row ${inputMode === 'gamepad' && optionFocusArea === 'rows' && focusedRowIndex === 3 ? 'focused' : ''}`}>
+                  <span className="thief-label">Gore & Blood FX</span>
+                  <div className="thief-toggle-group"><button className="thief-toggle-btn active">{settings.bloodEffect}</button></div>
+                </div>
+              </>
+            )}
+
+            <button 
+              className={`back-btn ${inputMode === 'gamepad' && optionFocusArea === 'backBtn' ? 'focused' : ''}`}
+              onClick={() => { playSfx('back'); setGameState('menu'); }}
+            >
+              Apply & Save Settings
+            </button>
+          </div>
+
+          <div className="settings-description">
+            <p>
+              Mode Kontrol: {inputMode === 'gamepad' ? 'DualShock Active' : 'Keyboard Active'}. 
+              {inputMode === 'gamepad' && ' Gunakan panah D-pad Atas/Bawah untuk navigasi item, panah Kiri/Kanan untuk berpindah area tab, dan tekan tombol [X] untuk mengubah value.'}
+            </p>
           </div>
         </div>
       )}
 
-      {/* INTERFACE PANEL SUPLEMEN */}
-      {(gameState === 'extra' || gameState === 'special' || gameState === 'credit') && (
+      {/* 6. SCREEN EXTRA (LIST KARAKTER DENGAN DESKRIPSI KECIL) */}
+      {gameState === 'extra' && (
+        <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
+          <div className="settings-main" style={{ padding: '40px 60px' }}>
+            <h2 style={{ textTransform: 'uppercase', letterSpacing: '5px', color: '#ff1a1a', fontSize: '2.2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '15px', margin: 0 }}>Extra Contents</h2>
+            
+            <div className="extra-content-list">
+              <div className="extra-item-row focused">
+                <span className="extra-title">Play as Remy</span>
+                <span className="extra-desc">Play as remy and explore the truth behind the accident</span>
+              </div>
+              <div className="extra-item-row focused">
+                <span className="extra-title">Play as Toppy</span>
+                <span className="extra-desc">Toppy will seeking the truth and try to escape</span>
+              </div>
+              <div className="extra-item-row focused">
+                <span className="extra-title">Play as Samson</span>
+                <span className="extra-desc">Play as Samson and his story to find out what happened to Jakarta City</span>
+              </div>
+            </div>
+
+            <button className="back-btn focused" onClick={() => { playSfx('back'); setGameState('menu'); }}>Return To Menu</button>
+          </div>
+        </div>
+      )}
+
+      {/* 7. SCREEN SPECIAL CONTENT */}
+      {gameState === 'special' && (
         <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
-            <h2 style={{ textTransform: 'uppercase', letterSpacing: '5px', color: '#ff1a1a', fontSize: '2.5rem' }}>
-              {gameState === 'extra' && 'Extra Content'}
-              {gameState === 'special' && 'Special Content'}
-              {gameState === 'credit' && 'Credits'}
-            </h2>
-            <button className="back-btn" style={{ width: '300px', margin: '30px auto 0' }} onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
+            <h2 style={{ textTransform: 'uppercase', letterSpacing: '5px', color: '#ff1a1a', fontSize: '2.5rem' }}>Special Content</h2>
+            <p style={{ margin: '30px 0', fontSize: '1.4rem', color: '#ccc' }}>Bonus Developer Commentary and Behind the Scenes.</p>
+            <button className="back-btn focused" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
           </div>
         </div>
       )}
 
-      {/* --- SIMBOL DUALSHOCK BARU: KONDISI HANYA MUNCUL JIKA GAMEPAD AKTIF --- */}
+      {/* 8. SCREEN CREDIT (CREATED BY NURULL) */}
+      {gameState === 'credit' && (
+        <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
+          <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
+            <h2 style={{ textTransform: 'uppercase', letterSpacing: '5px', color: '#ff1a1a', fontSize: '2.5rem' }}>Credits</h2>
+            <p style={{ margin: '40px 0', fontSize: '2.2rem', color: '#ffffff', letterSpacing: '3px', fontWeight: 'bold' }}>
+              Created by Nurull
+            </p>
+            <button className="back-btn focused" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
+          </div>
+        </div>
+      )}
+
+      {/* SYMBOL BAR DUALSHOCK */}
       {inputMode === 'gamepad' && gameState !== 'intro' && (
         <div className="gamepad-indicator-bar">
-          <div className="gamepad-btn-hint">
-            <span className="ds-btn-cross">✕</span> Select
-          </div>
-          <div className="gamepad-btn-hint">
-            <span className="ds-btn-circle">◯</span> Back
-          </div>
+          <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select / Change</div>
+          <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
         </div>
       )}
 
