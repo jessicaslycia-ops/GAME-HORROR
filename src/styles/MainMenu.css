@@ -266,3 +266,65 @@
 .back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 10px 20px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: 25px; cursor: pointer; width: 100%; transition: all 0.2s; }
 .back-btn:hover { background: var(--accent-red); color: #000; box-shadow: 0 0 15px var(--accent-red); }
 @keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- CONTROLLER/DUALSHOCK INDICATOR BAR --- */
+.gamepad-indicator-bar {
+    position: absolute;
+    bottom: 25px;
+    right: 5%;
+    display: flex;
+    gap: 30px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 25px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    z-index: 10;
+    animation: barFadeIn 0.3s ease-out;
+}
+
+@keyframes barFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.gamepad-btn-hint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: #cccccc;
+    text-transform: uppercase;
+}
+
+/* Desain Simbol Tombol Silang (X) DualShock */
+.ds-btn-cross {
+    width: 24px;
+    height: 24px;
+    background: #2e6bbd;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.85rem;
+    box-shadow: 0 0 10px rgba(46, 107, 189, 0.6);
+}
+
+/* Desain Simbol Tombol Bulat (O) DualShock */
+.ds-btn-circle {
+    width: 24px;
+    height: 24px;
+    background: #bd2e2e;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.85rem;
+    box-shadow: 0 0 10px rgba(189, 46, 46, 0.6);
+}
