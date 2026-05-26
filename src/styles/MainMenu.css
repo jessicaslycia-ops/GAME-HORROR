@@ -40,7 +40,7 @@
     50% { opacity: 0.85; }
 }
 
-/* --- EFEK PARTIKEL PUTIH (DARI BAWAH KE ATAS) --- */
+/* --- PARTIKEL PUTIH --- */
 .particles-container {
     position: absolute;
     bottom: 0; left: 0; width: 100%; height: 100%;
@@ -48,7 +48,6 @@
     pointer-events: none;
     overflow: hidden;
 }
-
 .particle {
     position: absolute;
     bottom: -10px;
@@ -56,8 +55,6 @@
     border-radius: 50%;
     animation: floatUp 6s infinite ease-in-out;
 }
-
-/* Variasi posisi dan kecepatan partikel */
 .particle:nth-child(1) { left: 10%; width: 4px; height: 4px; animation-delay: 0s; animation-duration: 5s; }
 .particle:nth-child(2) { left: 25%; width: 6px; height: 6px; animation-delay: 1.5s; animation-duration: 7s; }
 .particle:nth-child(3) { left: 45%; width: 3px; height: 3px; animation-delay: 0.5s; animation-duration: 4s; }
@@ -72,191 +69,190 @@
     100% { transform: translateY(-105vh) scale(0.5); opacity: 0; }
 }
 
-/* --- FASE 1: INTRO & FASE 2: SPLASH --- */
+/* --- FASE 1: INTRO --- */
 .intro-screen {
     font-size: 2.5rem;
     letter-spacing: 12px;
     text-transform: uppercase;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
     animation: fadeInOut 4s forwards;
+    z-index: 5;
 }
 @keyframes fadeInOut {
     0% { opacity: 0; transform: scale(0.95); }
     30%, 70% { opacity: 1; transform: scale(1); }
     100% { opacity: 0; transform: scale(1.05); }
 }
-.splash-screen { width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15%; z-index: 3; cursor: pointer; }
-.press-anything-text { font-size: 2.2rem; letter-spacing: 8px; text-transform: uppercase; text-shadow: 0 0 12px rgba(255, 255, 255, 0.8); animation: pulseText 1.5s infinite; transition: all 0.1s ease-out; }
-.press-anything-text.interacted { color: var(--accent-red) !important; text-shadow: 0 0 30px var(--accent-red); animation: none; transform: scale(1.1); }
-@keyframes pulseText { 0%, 100% { opacity: 0.5; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
 
-/* --- FASE 3: HOME MENU (THE ORDER STYLE) --- */
-.order-layout { position: absolute; left: 8%; top: 25%; z-index: 5; text-align: left; }
-.order-header { display: flex; align-items: baseline; gap: 15px; margin-bottom: 35px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; width: fit-content; }
-.order-title { font-size: 3rem; font-weight: 400; letter-spacing: 8px; text-transform: uppercase; margin: 0; }
-.order-subtitle { font-size: 2rem; color: var(--text-dim); letter-spacing: 4px; padding-left: 15px; border-left: 2px solid var(--text-dim); }
-.order-menu-list { list-style: none; padding: 0; margin: 0; }
-.order-menu-item { margin: 18px 0; }
-.order-menu-btn { background: none; border: none; color: var(--text-dim); font-family: 'Times New Roman', Times, serif; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 4px; cursor: pointer; transition: all 0.2s ease; }
-.order-menu-btn:hover { color: var(--text-bright); letter-spacing: 6px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.6); }
-
-/* --- INTRINSICS/STAGE SELECT PANEL (STYLE: WARFRAME DRIFTER) --- */
-.intrinsics-panel {
-    width: 90%;
-    max-width: 1200px;
-    z-index: 5;
-    text-align: center;
-    animation: panelFade 0.4s ease-out;
+/* --- FASE 2: SPLASH SCREEN (PRESS ANYTHING) --- */
+.splash-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 15%;
+    z-index: 3;
+    cursor: pointer;
+    position: relative;
 }
 
-.intrinsics-title-header {
+/* Tambahan: Efek Vignette Gradasi Merah Darah & Hitam Pekat agar Lebih Horor */
+.horror-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(120, 10, 10, 0.25) 0%, rgba(20, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.98) 100%);
+    z-index: 1;
+}
+
+.press-anything-text {
+    font-size: 2.2rem;
+    letter-spacing: 8px;
     text-transform: uppercase;
-    font-size: 1.8rem;
-    letter-spacing: 6px;
-    color: var(--text-bright);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 15px;
-    margin-bottom: 50px;
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+    animation: pulseText 1.5s infinite;
+    transition: all 0.1s ease-out;
+    z-index: 2;
+}
+
+.press-anything-text.interacted {
+    color: var(--accent-red) !important;
+    text-shadow: 0 0 30px var(--accent-red);
+    animation: none;
+    transform: scale(1.1);
+}
+
+@keyframes pulseText {
+    0%, 100% { opacity: 0.5; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+/* Tambahan: Animasi Flash Cahaya Sangat Terang dengan Efek Fade */
+.flash-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #ffffff;
+    z-index: 99;
+    pointer-events: none;
+    animation: flashFade 1.2s forwards ease-out;
+}
+
+@keyframes flashFade {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* --- FASE 3: HOME MENU (FINAL END STYLE) --- */
+.order-layout {
+    position: absolute;
+    left: 8%;
+    top: 25%;
+    z-index: 5;
     text-align: left;
 }
 
-.stages-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 20px;
-    justify-content: center;
-    align-items: flex-start;
-}
-
-.stage-card {
+/* Animasi Muncul Lembut & Bergeser dari Kiri ke Kanan untuk Header */
+.order-header {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+    align-items: baseline;
+    gap: 15px;
+    margin-bottom: 35px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    width: fit-content;
+    animation: slideFromLeft 1.2s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
-/* Struktur Kerangka Lingkaran Luar */
-.circle-wrapper {
-    position: relative;
-    width: 130px;
-    height: 130px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 25px;
+.order-title {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
-/* Efek Ring Luar Tipis */
-.circle-wrapper::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-}
-
-/* Lingkaran Level Aktif (Level 1) */
-.stage-circle-active {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 3px solid var(--accent-red);
-    background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%);
-    box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2.2rem;
-    font-weight: bold;
-    color: #ffffff;
-    text-shadow: 0 0 10px #ff1a1a;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.stage-circle-active:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red);
-}
-
-/* Lingkaran Level Terkunci (Level 2-6) */
-.stage-circle-locked {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 2px solid #444444;
-    background: rgba(20, 20, 20, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.order-subtitle {
     font-size: 1.8rem;
-    color: #555555;
-    cursor: not-allowed;
-}
-
-.stage-label-active {
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 3px;
-    color: var(--accent-red);
-    text-shadow: 0 0 5px rgba(255, 26, 26, 0.5);
-    margin-top: 5px;
-}
-
-.stage-label-locked {
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 2px;
-    color: #444444;
-    margin-top: 5px;
-}
-
-/* --- PANEL OPTION (THIEF STYLE MODERN) --- */
-.thief-settings-panel {
-    width: 85%;
-    height: 80%;
-    background: var(--panel-bg);
-    backdrop-filter: blur(10px);
-    border-left: 4px solid var(--accent-red);
-    display: grid;
-    grid-template-columns: 280px 1fr 320px;
-    z-index: 10;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
-    animation: panelSlideIn 0.3s ease-out;
-}
-
-@keyframes panelSlideIn {
-    from { transform: translateX(-30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.settings-sidebar {
-    padding: 35px;
-    border-right: 1px solid var(--border-color);
-}
-
-.settings-sidebar h2 { font-size: 1.6rem; letter-spacing: 3px; margin-bottom: 35px; color: #fff; text-transform: uppercase; }
-
-.settings-category {
     color: var(--text-dim);
-    font-size: 1.1rem;
-    margin: 20px 0;
-    cursor: pointer;
+    letter-spacing: 4px;
+    padding-left: 15px;
+    border-left: 2px solid var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 2px;
-    transition: color 0.2s;
 }
 
-.settings-category:hover {
-    color: #fff;
+.order-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.settings-category.active {
-    color: var(--accent-red);
-    font-weight: bold;
+/* Animasi Cascade (Bergantian/Satu-satu) Muncul dari Kiri Mendatar ke Kanan */
+.order-menu-item {
+    margin: 18px 0;
+    opacity: 0;
+    transform: translateX(-50px);
+    animation: slideFromLeft 1s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
+/* Memberikan jeda delay agar menu muncul berurutan secara estetik */
+.order-menu-item:nth-child(1) { animation-delay: 0.2s; }
+.order-menu-item:nth-child(2) { animation-delay: 0.35s; }
+.order-menu-item:nth-child(3) { animation-delay: 0.5s; }
+.order-menu-item:nth-child(4) { animation-delay: 0.65s; }
+.order-menu-item:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes slideFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.order-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.order-menu-btn:hover {
+    color: var(--text-bright);
+    letter-spacing: 6px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+}
+
+/* --- INTRINSICS/STAGE SELECT PANEL --- */
+.intrinsics-panel { width: 90%; max-width: 1200px; z-index: 5; text-align: center; animation: panelFade 0.4s ease-out; }
+.intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 50px; text-align: left; }
+.stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; }
+.stage-card { display: flex; flex-direction: column; align-items: center; position: relative; }
+.circle-wrapper { position: relative; width: 130px; height: 130px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+.circle-wrapper::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.1); }
+.stage-circle-active { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent-red); background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%); box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4); display: flex; justify-content: center; align-items: center; font-size: 2.2rem; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #ff1a1a; cursor: pointer; transition: all 0.3s ease; }
+.stage-circle-active:hover { transform: scale(1.1); box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red); }
+.stage-circle-locked { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #444444; background: rgba(20, 20, 20, 0.85); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; color: #555555; cursor: not-allowed; }
+.stage-label-active { text-transform: uppercase; font-size: 0.9rem; letter-spacing: 3px; color: var(--accent-red); text-shadow: 0 0 5px rgba(255, 26, 26, 0.5); margin-top: 5px; }
+.stage-label-locked { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #444444; margin-top: 5px; }
+
+/* --- PANEL OPTION --- */
+.thief-settings-panel { width: 85%; height: 80%; background: var(--panel-bg); backdrop-filter: blur(10px); border-left: 4px solid var(--accent-red); display: grid; grid-template-columns: 280px 1fr 320px; z-index: 10; box-shadow: 0 0 40px rgba(0,0,0,0.8); animation: panelSlideIn 0.3s ease-out; }
+@keyframes panelSlideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.settings-sidebar { padding: 35px; border-right: 1px solid var(--border-color); }
+.settings-sidebar h2 { font-size: 1.6rem; letter-spacing: 3px; margin-bottom: 35px; color: #fff; text-transform: uppercase; }
+.settings-category { color: var(--text-dim); font-size: 1.1rem; margin: 20px 0; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: color 0.2s; }
+.settings-category:hover { color: #fff; }
+.settings-category.active { color: var(--accent-red); font-weight: bold; }
 .settings-main { padding: 35px; overflow-y: auto; }
 .thief-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; }
 .thief-label { text-transform: uppercase; letter-spacing: 2px; font-size: 1rem; color: #ddd; }
@@ -267,19 +263,6 @@
 .upload-box input[type="file"] { font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; color: #aaa; }
 .settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); font-size: 0.95rem; }
 
-.back-btn {
-    background: none;
-    border: 1px solid var(--accent-red);
-    color: var(--accent-red);
-    padding: 10px 20px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-top: 25px;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.2s;
-}
+.back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 10px 20px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: 25px; cursor: pointer; width: 100%; transition: all 0.2s; }
 .back-btn:hover { background: var(--accent-red); color: #000; box-shadow: 0 0 15px var(--accent-red); }
 @keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
