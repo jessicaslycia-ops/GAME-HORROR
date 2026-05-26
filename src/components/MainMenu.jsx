@@ -27,7 +27,7 @@ const MainMenu = () => {
   // Web Audio API & Flags
   const audioCtxRef = useRef(null);
   const gainNodeRef = useRef(null);
-  const isBgmStarted = useRef(false); // FLAG UTAMA: Kunci agar lagu tidak mengulang-ulang
+  const isBgmStarted = useRef(false); // Mengunci audio agar tidak mengulang saat menekan tombol back
 
   const menuOptions = ['startgame', 'extra', 'special', 'option', 'credit'];
   const tabsList = ['graphics', 'display', 'audio', 'gameplay'];
@@ -54,11 +54,11 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // FIX UTAMA NO 1: Fade-in Musik Sekali Saja Saat Transisi Menuju Menu Utama
+  // Fade-in Musik Sekali Saja Saat Transisi Menuju Menu Utama
   useEffect(() => {
     if (gameState === 'menu' && audioRefs.bgm.current && !isBgmStarted.current) {
       const audio = audioRefs.bgm.current;
-      isBgmStarted.current = true; // Kunci aktif, BGM tidak akan terpicu ulang lagi jika kembali dari sub-menu
+      isBgmStarted.current = true; 
       
       if (!audioCtxRef.current) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -76,7 +76,7 @@ const MainMenu = () => {
       gainNodeRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
       audio.play().catch(() => {});
       
-      // Memperhalus kenaikan volume musik selama 3.5 detik pelan-pelan
+      // Menaikkan volume musik perlahan selama 3.5 detik pelan-pelan agar sinematik
       gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 3.5);
     }
   }, [gameState]);
@@ -88,7 +88,7 @@ const MainMenu = () => {
     }
   };
 
-  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA (Mendukung Fade Halus)
+  // Handing Interaksi Masuk ke Menu (Transisi Dipelama Sesuai Request Poin 2)
   const handleStartInteraction = () => {
     if (isInteracted) return;
     setIsInteracted(true);
@@ -96,7 +96,7 @@ const MainMenu = () => {
     playSfx('introPress'); 
     setTriggerFlash(true);
     
-    // Memperlama durasi jeda transisi layar dari splash menuju home menu agar terasa sinematik
+    // Dijeda selama 2.2 detik biar efek menghilangnya teks press anything terasa halus menyatu
     setTimeout(() => {
       setGameState('menu');
       setTriggerFlash(false);
@@ -224,17 +224,19 @@ const MainMenu = () => {
     }
   };
 
-  // FIX NO 3: Fungsi Pembantu Style Dinamis Akibat Perbedaan Device Input (Keyboard vs Joystick)
+  // Efek Modifikasi Glow Tombol Dinamis Terpisah (Poin 3)
   const getMenuButtonStyle = (idx) => {
     if (focusedMenuIndex !== idx) return {};
     
     if (inputMode === 'gamepad') {
+      // Joystick: Warna teks merah solid + pancaran glow merah tebal
       return {
         color: '#ff1a1a',
         textShadow: '0 0 25px #ff1a1a, 0 0 10px #ff1a1a',
         letterSpacing: '6px'
       };
     } else {
+      // Keyboard/Mouse: Warna teks putih + pancaran bayangan memerah tipis
       return {
         color: '#ffffff',
         textShadow: '0 0 20px rgba(255, 26, 26, 0.9), 0 0 8px rgba(255, 26, 26, 0.5)',
