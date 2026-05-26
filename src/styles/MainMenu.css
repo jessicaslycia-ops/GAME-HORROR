@@ -22,8 +22,8 @@
     padding: 0;
     user-select: none;
     box-sizing: border-box;
-    /* Poin 1 & 2 Fix: Container default selalu aktif agar anak-anak komponen tidak ter-block */
-    opacity: 1;
+    /* Kembalikan ke normal agar tidak memakan visibilitas menu lain */
+    opacity: 1 !important; 
     filter: none;
     transition: filter 1.5s ease-in-out;
 }
@@ -77,7 +77,7 @@
     100% { transform: translateY(-105vh) scale(0.5); opacity: 0; }
 }
 
-/* --- POIN 1 FIX: INTRO LAYAR HITAM TOTAL MURNI UTK TEKS BEBEN --- */
+/* --- POIN 1: FIX LAYER INTRO "MADE BY BEBEN" TIDAK BLINK ATAU HILANG --- */
 .intro-screen-pure-black {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -85,7 +85,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    z-index: 9999; /* Pastikan berada di layer tertinggi */
 }
 
 .intro-text-bright {
@@ -140,7 +140,7 @@
     text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
     opacity: 0;
     z-index: 2;
-    animation: fadeInSplashText 2s ease-out 0.6s forwards, pulseText 1.6s infinite 2.6s ease-in-out;
+    animation: fadeInSplashText 2s ease-out 0.6s forwards, pulseText 1.6s infinite 2.8s ease-in-out;
 }
 
 @keyframes fadeInSplashText {
@@ -187,6 +187,22 @@
     top: 35%; 
     z-index: 5;
     text-align: left;
+}
+
+/* Poin 2: FIX BLACK SCREEN - Mengatur Opacity Mengalir Tanpa Menghilangkan Objek */
+.content-hidden {
+    opacity: 0 !important;
+    filter: blur(10px) !important;
+    transform: translate3d(-20px, 0, 0) !important;
+}
+
+.content-visible {
+    opacity: 1 !important;
+    filter: blur(0px) !important;
+    transform: translate3d(0, 0, 0) !important;
+    transition: opacity 2s cubic-bezier(0.22, 1, 0.36, 1), 
+                filter 2s cubic-bezier(0.22, 1, 0.36, 1), 
+                transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .order-header {
@@ -248,27 +264,22 @@
     transition: all 0.25s ease;
 }
 
-/* --- POIN 2 FIX: KELAS ANIMASI SELEPAS PRESS ANYTHING --- */
-.main-menu-fade-in {
-    animation: smoothMenuReveal 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; 
-}
-
-/* Instant-ready jika user bolak-balik dari submenu Extra/Option (Anti-Blackout & Anti-Blur Ulang) */
-.menu-instant-ready {
-    opacity: 1 !important;
-    filter: none !important;
-    transform: translate3d(0, 0, 0) !important;
+/* --- ANIMASI REVEAL FADE-IN YANG DICADANGKAN HANYA UNTUK AKSES PERTAMA --- */
+.main-menu-fade-in.content-visible {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translate3d(0, 0, 0);
 }
 
 .global-bar-fade-in {
-    animation: smoothMenuReveal 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: smoothMenuReveal 3.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
 }
 
 @keyframes smoothMenuReveal {
     from {
         opacity: 0;
-        filter: blur(10px);
-        transform: translate3d(-20px, 0, 0);
+        filter: blur(12px);
+        transform: translate3d(-25px, 0, 0);
     }
     to {
         opacity: 1;
