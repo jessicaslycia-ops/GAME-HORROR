@@ -3,21 +3,21 @@ import '../styles/MainMenu.css';
 
 const MainMenu = () => {
   const [gameState, setGameState] = useState('intro'); // intro, splash, menu, startgame, option, credit, extra, special
-  const [activeTab, setActiveTab] = useState('graphics'); // graphics, display, audio, gameplay
+  const [activeTab, setActiveTab] = useState('graphics'); 
   const [isInteracted, setIsInteracted] = useState(false);
   const [triggerFlash, setTriggerFlash] = useState(false);
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
-  // MANAGEMENT INPUT DEVICE
+  // MANAGEMENT DEVICE INPUT
   const [inputMode, setInputMode] = useState('keyboard'); 
   const [focusedMenuIndex, setFocusedMenuIndex] = useState(0); 
 
   // SUB-NAVIGATION INTERNAL
-  const [optionFocusArea, setOptionFocusArea] = useState('sidebar'); // 'sidebar', 'rows', 'backBtn'
+  const [optionFocusArea, setOptionFocusArea] = useState('sidebar'); 
   const [focusedRowIndex, setFocusedRowIndex] = useState(0);
   const [focusedExtraIndex, setFocusedExtraIndex] = useState(0);
   
-  // STATE NOTIFIKASI KUNCI CHAPTER SELECT
+  // STATE NOTIFIKASI KUNCI JURUS BAHASA INGGRIS
   const [chapterAlert, setChapterAlert] = useState('');
 
   // Audio References
@@ -27,13 +27,6 @@ const MainMenu = () => {
     bgm: useRef(new Audio('/sounds/bgm.mp3')),
     move: useRef(new Audio('/sounds/move.mp3')),
   };
-
-  const [settings, setSettings] = useState({
-    motionBlur: 'ON', textureQuality: 'HIGH', shadow: 'ULTRA', antiAliasing: 'TAA',
-    brightness: '80%', resolution: '1920x1080', vsync: 'ON', windowMode: 'FULLSCREEN',
-    masterVolume: '100%', musicVolume: '80%', sfxVolume: '90%', voiceLanguage: 'ENGLISH',
-    difficulty: 'HARDCORE', subtitles: 'ON', aimAssist: 'OFF', bloodEffect: 'ON'
-  });
 
   const menuOptions = ['startgame', 'extra', 'special', 'option', 'credit'];
   const tabsList = ['graphics', 'display', 'audio', 'gameplay'];
@@ -50,15 +43,17 @@ const MainMenu = () => {
     if (audioRefs.bgm.current) audioRefs.bgm.current.loop = true;
   }, []);
 
-  // Intro Otomatis (4 Detik)
+  // Transisi Sempurna Intro ke Splash Screen (Menghitung Jeda Waktu Sinematik)
   useEffect(() => {
     if (gameState === 'intro') {
-      const timer = setTimeout(() => setGameState('splash'), 4000);
+      const timer = setTimeout(() => {
+        setGameState('splash');
+      }, 4000); // Intro 4 detik selesai, CSS Horror-Overlay & Text Splash mulai merayap naik
       return () => clearTimeout(timer);
     }
   }, [gameState]);
 
-  // Musik BGM Aktif Utama
+  // Musik BGM Aktif Utama setelah melewati intro sinematik
   useEffect(() => {
     if (gameState !== 'intro' && gameState !== 'splash' && audioRefs.bgm.current) {
       audioRefs.bgm.current.play().catch(() => {});
@@ -72,7 +67,7 @@ const MainMenu = () => {
     }
   };
 
-  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA (FIXED: KEYBOARD & MOUSE MULTI-SUPPORT)
+  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA (KEYBOARD & MOUSE)
   const handleStartInteraction = () => {
     if (isInteracted) return;
     setIsInteracted(true);
@@ -104,12 +99,8 @@ const MainMenu = () => {
         } else if (e.key === 'Enter') {
           playSfx('press');
           setGameState(menuOptions[focusedMenuIndex]);
-          if (menuOptions[focusedMenuIndex] === 'option') {
-            setOptionFocusArea('sidebar');
-            setFocusedRowIndex(0);
-          } else if (menuOptions[focusedMenuIndex] === 'extra') {
-            setFocusedExtraIndex(0);
-          }
+          if (menuOptions[focusedMenuIndex] === 'option') setFocusedRowIndex(0);
+          if (menuOptions[focusedMenuIndex] === 'extra') setFocusedExtraIndex(0);
         }
       }
 
@@ -130,7 +121,7 @@ const MainMenu = () => {
         if (e.key === 'Escape') {
           playSfx('back');
           setGameState('menu');
-          setChapterAlert(''); // Reset teks eror chapter select
+          setChapterAlert(''); 
         }
       }
     };
@@ -150,86 +141,48 @@ const MainMenu = () => {
   // SYSTEM CONTROLLER GAMEPAD NAVIGATION
   useEffect(() => {
     let animationFrameId;
-
     const scanGamepads = () => {
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
       const gp = gamepads[0];
-
       if (gp) {
         const now = Date.now();
-        const anyButtonPressed = gp.buttons.some(b => b.pressed);
-        const axesMoved = gp.axes.some(a => Math.abs(a) > 0.5);
-
-        if ((anyButtonPressed || axesMoved) && inputMode !== 'gamepad') {
-          setInputMode('gamepad');
-        }
-
         if (now - lastButtonAction.current > 180) {
-          
-          if (gameState === 'splash' && anyButtonPressed) {
+          if (gameState === 'splash') {
             handleStartInteraction();
             lastButtonAction.current = now;
           }
-
-          else if (gameState === 'menu' && inputMode === 'gamepad') {
-            if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { 
-              playSfx('move');
-              setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length);
-              lastButtonAction.current = now;
-            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { 
-              playSfx('move');
-              setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length);
-              lastButtonAction.current = now;
-            } else if (gp.buttons[0].pressed) { 
-              playSfx('press');
-              setGameState(menuOptions[focusedMenuIndex]);
-              lastButtonAction.current = now;
+          else if (gameState === 'menu') {
+            if (gp.buttons[13].pressed || gp.axes[1] > 0.5) {
+              playSfx('move'); setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length); lastButtonAction.current = now;
+            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
+              playSfx('move'); setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length); lastButtonAction.current = now;
+            } else if (gp.buttons[0].pressed) {
+              playSfx('press'); setGameState(menuOptions[focusedMenuIndex]); lastButtonAction.current = now;
             }
           }
-
-          else if (gameState === 'extra' && inputMode === 'gamepad') {
-            if (gp.buttons[1].pressed) { 
-              playSfx('back');
-              setGameState('menu');
-              lastButtonAction.current = now;
-            } else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { 
-              playSfx('move');
-              setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length);
-              lastButtonAction.current = now;
-            } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { 
-              playSfx('move');
-              setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length);
-              lastButtonAction.current = now;
-            }
+          else if (gameState === 'extra') {
+            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; }
+            else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length); lastButtonAction.current = now; }
+            else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length); lastButtonAction.current = now; }
           }
-
-          else if ((gameState === 'startgame' || gameState === 'special' || gameState === 'credit') && inputMode === 'gamepad') {
-            if (gp.buttons[1].pressed || gp.buttons[0].pressed) { 
-              playSfx('back');
-              setGameState('menu');
-              setChapterAlert('');
-              lastButtonAction.current = now;
-            }
+          else if (['startgame', 'special', 'credit', 'option'].includes(gameState)) {
+            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); setChapterAlert(''); lastButtonAction.current = now; }
           }
         }
       }
       animationFrameId = requestAnimationFrame(scanGamepads);
     };
-
     animationFrameId = requestAnimationFrame(scanGamepads);
     return () => cancelAnimationFrame(animationFrameId);
   }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
 
-  // Logika Eksekusi Membuka / Mengklik Chapter Select
+  // ALASAN CHAPTER TERKUNCI MENGGUNAKAN BAHASA INGGRIS PREMIUM
   const handleChapterClick = (chapterNum) => {
     if (chapterNum === 1) {
-      playSfx('press');
-      setChapterAlert('');
-      alert('Memulai petualangan di Chapter 1...');
+      playSfx('press'); setChapterAlert(''); alert('Loading Chapter 1...');
     } else {
       playSfx('back');
-      // Menampilkan alasan kegagalan membuka chapter terkunci
-      setChapterAlert(`CHAPTER ${chapterNum} TERKUNCI: Selesaikan Chapter sebelumnya untuk membuka kunci.`);
+      setChapterAlert(`CHAPTER ${chapterNum} LOCKED: Complete the previous chapter to unlock this content.`);
     }
   };
 
@@ -252,12 +205,12 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 2. SCREEN SPLASH (FIXED: MOUSE CLICK AKTIF) */}
+      {/* 2. SCREEN SPLASH (FIXED TRANSITION & CLEAN TEXT) */}
       {gameState === 'splash' && (
         <div className="splash-screen" onClick={handleStartInteraction}>
           <div className="horror-overlay"></div>
           <div className={`press-anything-text ${isInteracted ? 'interacted' : ''}`}>
-            {isInteracted ? 'Accessing...' : 'Press Anything or Click Mouse'}
+            {isInteracted ? 'Accessing...' : 'Press Anything'}
           </div>
         </div>
       )}
@@ -269,7 +222,6 @@ const MainMenu = () => {
             <h1 className="order-title">LAST TRANSMISSION</h1>
             <span className="order-subtitle">2026</span>
           </div>
-
           <ul className="order-menu-list">
             {menuOptions.map((opt, idx) => (
               <li className="order-menu-item" key={opt}>
@@ -280,21 +232,10 @@ const MainMenu = () => {
                     textShadow: focusedMenuIndex === idx ? '0 0 15px #ff1a1a' : '',
                     letterSpacing: focusedMenuIndex === idx ? '6px' : ''
                   }}
-                  onMouseEnter={() => {
-                    if (inputMode === 'keyboard') {
-                      playSfx('move');
-                      setFocusedMenuIndex(idx);
-                    }
-                  }}
+                  onMouseEnter={() => { if (inputMode === 'keyboard') setFocusedMenuIndex(idx); }}
                   onClick={() => {
-                    playSfx('press');
-                    setGameState(opt);
-                    if (opt === 'option') {
-                      setOptionFocusArea('sidebar');
-                      setFocusedRowIndex(0);
-                    } else if (opt === 'extra') {
-                      setFocusedExtraIndex(0);
-                    }
+                    playSfx('press'); setGameState(opt);
+                    if (opt === 'option') setOptionFocusArea('sidebar');
                   }}
                 >
                   {opt === 'startgame' && 'Start Game'}
@@ -309,23 +250,15 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 4. SCREEN CHAPTER SELECT (INTERAKTIF 6 CHAPTER + NOTIFIKASI ALASAN KUNCI) */}
+      {/* 4. SCREEN CHAPTER SELECT */}
       {gameState === 'startgame' && (
         <div className="intrinsics-panel">
-          <div className="intrinsics-title-header">
-            <h2>DRIFTER INTRINSICS / CHAPTER SELECT</h2>
-          </div>
-          
+          <div className="intrinsics-title-header"><h2>DRIFTER INTRINSICS / CHAPTER SELECT</h2></div>
           <div className="stages-grid">
-            {/* Chapter 1 Aktif */}
             <div className="stage-card">
-              <div className="circle-wrapper">
-                <div className="stage-circle-active focused" onClick={() => handleChapterClick(1)}>1</div>
-              </div>
+              <div className="circle-wrapper"><div className="stage-circle-active focused" onClick={() => handleChapterClick(1)}>1</div></div>
               <div className="stage-label-active">AVAILABLE</div>
             </div>
-
-            {/* Chapter 2 - 6 Terkunci Menggunakan Simbol Vektor Putih */}
             {[2, 3, 4, 5, 6].map((num) => (
               <div className="stage-card" key={num} onClick={() => handleChapterClick(num)}>
                 <div className="circle-wrapper">
@@ -340,13 +273,7 @@ const MainMenu = () => {
               </div>
             ))}
           </div>
-
-          {/* Alert Penjelasan Kenapa Terkunci */}
-          <div className="chapter-lock-alert-box">
-            {chapterAlert}
-          </div>
-
-          {/* REDESIGN BUTTON: No Background, Border Red Saja, Posisi Paling Bawah */}
+          <div className="chapter-lock-alert-box">{chapterAlert}</div>
           <button className="back-btn-aaa-border" onClick={() => { playSfx('back'); setGameState('menu'); setChapterAlert(''); }}>
             Return To Menu
           </button>
@@ -359,13 +286,7 @@ const MainMenu = () => {
           <div className="settings-sidebar">
             <h2>SETTINGS</h2>
             {tabsList.map((tab) => (
-              <div 
-                key={tab}
-                className={`settings-category ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => { playSfx('move'); setActiveTab(tab); }}
-              >
-                {tab}
-              </div>
+              <div key={tab} className={`settings-category ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</div>
             ))}
           </div>
           <div className="settings-main">
@@ -379,57 +300,28 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 6. SCREEN EXTRAS (BAR KETERANGAN CORET MENTOK BAWAH LAYAR) */}
+      {/* 6. SCREEN EXTRAS */}
       {gameState === 'extra' && (
         <div className="aaa-extras-layout">
-          <div className="order-header">
-            <h1 className="order-title">Extras</h1>
-            <span className="order-subtitle">Content Bonus</span>
-          </div>
-
+          <div className="order-header"><h1 className="order-title">Extras</h1><span className="order-subtitle">Content Bonus</span></div>
           <div className="extras-menu-split">
             <div className="extras-list-container">
               {extraCharacters.map((char, index) => (
                 <button
                   key={char.id}
                   className={`extra-character-row ${focusedExtraIndex === index ? 'focused' : ''}`}
-                  onMouseEnter={() => {
-                    if (inputMode === 'keyboard') {
-                      playSfx('move');
-                      setFocusedExtraIndex(index);
-                    }
-                  }}
+                  onMouseEnter={() => { if (inputMode === 'keyboard') setFocusedExtraIndex(index); }}
                   onClick={() => playSfx('press')}
                 >
-                  {/* SIMBOL GEMBOK PUTIH MINIMALIS VEKTOR */}
-                  <svg className="extra-char-lock-svg" viewBox="0 0 24 24">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
+                  <svg className="extra-char-lock-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                   <span className="extra-char-title">{char.title}</span>
                 </button>
               ))}
             </div>
-
             <div className="extras-description-panel" key={focusedExtraIndex}>
               <div className="extras-desc-title-sub">Locked Content Data</div>
               <div className="extras-desc-main-text">{extraCharacters[focusedExtraIndex].desc}</div>
             </div>
-          </div>
-
-          {/* BAR PANDUAN BUTTON SEKARANG MENTOK AMAN DI BAWAH CONTAINER */}
-          <div className="gamepad-indicator-bar left-align">
-            {inputMode === 'keyboard' ? (
-              <>
-                <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Navigate</div>
-                <div className="gamepad-btn-hint"><span className="kb-btn-tag">Esc</span> Back to Menu</div>
-              </>
-            ) : (
-              <>
-                <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select</div>
-                <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
-              </>
-            )}
           </div>
         </div>
       )}
@@ -438,9 +330,9 @@ const MainMenu = () => {
       {gameState === 'special' && (
         <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
-            <h2 style={{ textTransform: 'uppercase', letterSpacing: '5px', color: '#ff1a1a', fontSize: '2.5rem' }}>Special Content</h2>
+            <h2>Special Content</h2>
             <p style={{ margin: '30px 0', fontSize: '1.4rem', color: '#ccc' }}>Bonus Developer Commentary and Behind the Scenes.</p>
-            <button className="back-btn focused" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
+            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
           </div>
         </div>
       )}
@@ -449,18 +341,27 @@ const MainMenu = () => {
       {gameState === 'credit' && (
         <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
-            <h2 style={{ textTransform: 'uppercase', letterSpacing: '5px', color: '#ff1a1a', fontSize: '2.5rem' }}>Credits</h2>
-            <p style={{ margin: '40px 0', fontSize: '2.2rem', color: '#ffffff', letterSpacing: '3px', fontWeight: 'bold' }}>Created by Nurull</p>
-            <button className="back-btn focused" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
+            <h2>Credits</h2>
+            <p style={{ margin: '40px 0', fontSize: '2.2rem', color: '#ffffff', letterSpacing: '3px' }}>Created by Nurull</p>
+            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
           </div>
         </div>
       )}
 
-      {/* GLOBAL CONTROLLER BAR */}
-      {inputMode === 'gamepad' && gameState !== 'intro' && gameState !== 'extra' && (
-        <div className="gamepad-indicator-bar">
-          <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select / Change</div>
-          <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
+      {/* FIXED GLOBAL NAV BAR: Selalu nangkring di bawah dalam kondisi menu apa pun */}
+      {gameState !== 'intro' && gameState !== 'splash' && (
+        <div className="global-gameplay-indicator-bar">
+          {inputMode === 'keyboard' ? (
+            <>
+              <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Navigate</div>
+              {gameState !== 'menu' && <div className="gamepad-btn-hint"><span className="kb-btn-tag">Esc</span> Back</div>}
+            </>
+          ) : (
+            <>
+              <div className="gamepad-btn-hint"><span className="ds-btn-cross">✕</span> Select</div>
+              <div className="gamepad-btn-hint"><span className="ds-btn-circle">◯</span> Back</div>
+            </>
+          )}
         </div>
       )}
 
