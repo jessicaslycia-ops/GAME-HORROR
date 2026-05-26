@@ -425,3 +425,25 @@
 .thief-toggle-btn.active { background: var(--accent-red); color: #fff; }
 .settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); }
 .back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 12px 24px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: auto; cursor: pointer; width: 100%; }
+
+/* --- ANIMASI TRANSISI HALUS HOME MENU (FADE-IN) --- */
+.main-menu-fade-in {
+    animation: smoothMenuReveal 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.global-bar-fade-in {
+    animation: smoothMenuReveal 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes smoothMenuReveal {
+    from {
+        opacity: 0;
+        filter: blur(6px);
+        transform: translate3d(-15px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0px);
+        transform: translate3d(0, 0, 0);
+    }
+}
