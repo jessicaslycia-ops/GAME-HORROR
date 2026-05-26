@@ -8,9 +8,10 @@ const MainMenu = () => {
   const [triggerFlash, setTriggerFlash] = useState(false);
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
-  // FLAGS UNTUK TRANSISI SIFATNYA ONCE (POIN 1 & 2)
+  // FLAGS UNTUK TRANSISI SIFATNYA ONCE
   const [hasCompletedIntro, setHasCompletedIntro] = useState(false); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
+  const [renderMenuContent, setRenderMenuContent] = useState(false); // Solusi Poin 2: Mencegah menu mengintip duluan
 
   // MANAGEMENT DEVICE INPUT
   const [inputMode, setInputMode] = useState('keyboard'); 
@@ -47,17 +48,23 @@ const MainMenu = () => {
     if (audioRefs.bgm.current) audioRefs.bgm.current.loop = true;
   }, []);
 
-  // Poin 4: Intro Made by Beben Murni Hitam Pekat ke Splash
+  // Poin 1: Intro ke Splash Screen Diperhalus Total Tanpa Kebocoran Background
   useEffect(() => {
     if (gameState === 'intro') {
       const timer = setTimeout(() => {
-        setGameState('splash');
-      }, 4000);
+        setIsTransitioning(true); // Memicu layar menggelap/menghalus terlebih dahulu
+        
+        setTimeout(() => {
+          setGameState('splash');
+          setIsTransitioning(false); // Kembalikan state transisi setelah posisi aman
+        }, 800); // Jeda transisi antar state
+        
+      }, 3500);
       return () => clearTimeout(timer);
     }
   }, [gameState]);
 
-  // Fungsi Fade-In Audio yang Sangat Mulus Dari Benar-benar Senyap (Poin 1)
+  // Fungsi Fade-In Audio
   const startBgmWithFade = () => {
     const audio = audioRefs.bgm.current;
     if (!audio) return;
@@ -75,15 +82,12 @@ const MainMenu = () => {
       gainNodeRef.current = gainNode;
     }
 
-    // Pastikan mulai dari nol mutlak
     gainNodeRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
     audio.play().catch(() => {});
-    
-    // Suara merambat normal perlahan selama 4 detik
     gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 4.0);
   };
 
-  // Fungsi Fade-Out Audio saat menekan Back ke Splash Screen (Poin 3)
+  // Fungsi Fade-Out Audio
   const fadeOutBgm = () => {
     if (audioCtxRef.current && gainNodeRef.current) {
       gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 1.5);
@@ -103,50 +107,57 @@ const MainMenu = () => {
     }
   };
 
-  // Poin 1: Manajemen Transisi dari Splash Ke Menu Utama Supaya Smooth
+  // Transisi Menuju Home Menu Utama
   const handleStartInteraction = () => {
     if (isInteracted || isTransitioning) return;
     setIsInteracted(true);
     setIsTransitioning(true);
     
     playSfx('introPress'); 
-    startBgmWithFade(); // Audio mulai perlahan dari 0 ke normal di sini
+    startBgmWithFade(); 
     setTriggerFlash(true);
     
-    // Tahan visual selama 2.2 detik agar animasi fade-out bawaan CSS bekerja tuntas tanpa potong kompas
+    // Poin 2: Tahan render konten teks menu sampai flash dan blur awal selesai diproses background
     setTimeout(() => {
       setGameState('menu');
       setIsTransitioning(false);
       setTriggerFlash(false);
+      
+      // Beri jeda micro-seconds agar struktur CSS siap, baru teks dimunculkan mengalir
+      setTimeout(() => {
+        setRenderMenuContent(true);
+      }, 150);
+
     }, 2200); 
   };
 
-  // Poin 3: Fungsi kembali ke Splash Screen (Press Anything) dari Home Menu
+  // Fungsi Kembali ke Splash Screen (Press Anything)
   const handleBackToSplash = () => {
     playSfx('back');
     setIsTransitioning(true);
-    fadeOutBgm(); // Redupkan musik kembali ke senyap
+    setRenderMenuContent(false); // Sembunyikan konten menu dengan cepat saat mundur
+    fadeOutBgm(); 
 
     setTimeout(() => {
       setIsInteracted(false);
-      setHasCompletedIntro(false); // Reset status agar transisi blur bisa berjalan lagi nanti
+      setHasCompletedIntro(false); 
       setGameState('splash');
       setIsTransitioning(false);
     }, 1500);
   };
 
-  // KONTROL KEYBOARD & EVENT DETEKSI MOUSE ENGINE
+  // ENGINE KONTROL KEYBOARD & MOUSE
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (inputMode !== 'keyboard' && !isTransitioning) setInputMode('keyboard');
-      if (isTransitioning) return; // Kunci input jika transisi sedang berjalan
+      if (isTransitioning) return; 
 
       if (gameState === 'splash') {
         handleStartInteraction();
         return;
       }
 
-      if (gameState === 'menu') {
+      if (gameState === 'menu' && renderMenuContent) {
         if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
           playSfx('move');
           setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length);
@@ -155,10 +166,10 @@ const MainMenu = () => {
           setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length);
         } else if (e.key === 'Enter') {
           playSfx('press');
-          setHasCompletedIntro(true); // Kunci diaktifkan: transisi blur tidak akan diulang lagi (Poin 2)
+          setHasCompletedIntro(true); 
           setGameState(menuOptions[focusedMenuIndex]);
         } else if (e.key === 'Escape') {
-          handleBackToSplash(); // Poin 3
+          handleBackToSplash(); 
         }
       }
 
@@ -194,9 +205,9 @@ const MainMenu = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning]);
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning, renderMenuContent]);
 
-  // SYSTEM CONTROLLER GAMEPAD NAVIGATION
+  // ENGINE KONTROL GAMEPAD
   useEffect(() => {
     let animationFrameId;
     const scanGamepads = () => {
@@ -216,7 +227,7 @@ const MainMenu = () => {
             handleStartInteraction();
             lastButtonAction.current = now;
           }
-          else if (gameState === 'menu') {
+          else if (gameState === 'menu' && renderMenuContent) {
             if (gp.buttons[13].pressed || gp.axes[1] > 0.5) {
               playSfx('move'); setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length); lastButtonAction.current = now;
             } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
@@ -233,7 +244,7 @@ const MainMenu = () => {
             else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length); lastButtonAction.current = now; }
           }
           else if (['startgame', 'special', 'credit', 'option'].includes(gameState)) {
-            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); setChapterAlert(''); lastButtonAction.current = now; }
+            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; }
           }
         }
       }
@@ -241,7 +252,7 @@ const MainMenu = () => {
     };
     animationFrameId = requestAnimationFrame(scanGamepads);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning]);
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning, renderMenuContent]);
 
   const handleChapterClick = (chapterNum) => {
     if (chapterNum === 1) {
@@ -263,7 +274,6 @@ const MainMenu = () => {
     }
   };
 
-  // Efek Glow Tombol Dinamis Joystick vs Keyboard
   const getMenuButtonStyle = (idx) => {
     if (focusedMenuIndex !== idx) return {};
     if (inputMode === 'gamepad') {
@@ -273,8 +283,17 @@ const MainMenu = () => {
     }
   };
 
+  // Logika Pemutus Kelas Background Supaya Tidak Bocor Saat Intro Menuju Splash
+  const getDynamicBackground = () => {
+    if (gameState === 'intro') return 'none';
+    return `url(${bgImage})`;
+  };
+
   return (
-    <div className={`horror-game-container ${isTransitioning ? 'screen-fade-out-global' : ''}`} style={{ backgroundImage: gameState !== 'intro' ? `url(${bgImage})` : 'none' }}>
+    <div 
+      className={`horror-game-container ${isTransitioning ? 'screen-fade-out-global' : ''} ${gameState === 'splash' ? 'splash-bg-active' : ''}`} 
+      style={{ backgroundImage: getDynamicBackground() }}
+    >
       {triggerFlash && <div className="flash-overlay"></div>}
       {gameState !== 'intro' && <div className="glitch-bg"></div>}
 
@@ -285,14 +304,14 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 1. SCREEN INTRO (POIN 4 - MURNI HITAM TOTAL) */}
+      {/* 1. SCREEN INTRO (MURNI BLACK SCREEN TOTAL) */}
       {gameState === 'intro' && (
         <div className="intro-screen-pure-black">
           <h1 className="intro-text-bright">Made by Beben</h1>
         </div>
       )}
 
-      {/* 2. SCREEN SPLASH (POIN 4 - MERAH MERAMBAT DARI TRANSISI INTRO) */}
+      {/* 2. SCREEN SPLASH (PRESS ANYTHING) */}
       {gameState === 'splash' && (
         <div className="splash-screen" onClick={handleStartInteraction}>
           <div className="horror-overlay-slow"></div>
@@ -304,8 +323,8 @@ const MainMenu = () => {
 
       {/* 3. SCREEN HOME MENU UTAMA */}
       {gameState === 'menu' && (
-        /* POIN 2: Jika hasCompletedIntro true, class animasi ditiadakan agar menu muncul instan tanpa di-blur ulang */
-        <div className={`order-layout ${hasCompletedIntro ? '' : 'main-menu-fade-in'}`}>
+        /* Poin 2: Menggunakan renderMenuContent agar teks baru diizinkan muncul saat struktur CSS sudah siap */
+        <div className={`order-layout ${hasCompletedIntro ? '' : 'main-menu-fade-in'} ${renderMenuContent ? 'content-visible' : 'content-hidden'}`}>
           <div className="order-header">
             <h1 className="order-title">LAST TRANSMISSION</h1>
             <span className="order-subtitle">2026</span>
@@ -320,7 +339,7 @@ const MainMenu = () => {
                   onClick={() => {
                     if (isTransitioning) return;
                     playSfx('press'); 
-                    setHasCompletedIntro(true); // Kunci transisi diaktifkan di sini
+                    setHasCompletedIntro(true); 
                     setGameState(opt);
                   }}
                 >
@@ -429,7 +448,7 @@ const MainMenu = () => {
       )}
 
       {/* GLOBAL INDICATOR NAV BAR */}
-      {gameState !== 'intro' && gameState !== 'splash' && (
+      {gameState !== 'intro' && gameState !== 'splash' && renderMenuContent && (
         <div className={`global-gameplay-indicator-bar ${hasCompletedIntro ? '' : 'global-bar-fade-in'}`}>
           {inputMode === 'keyboard' ? (
             <>
