@@ -135,7 +135,6 @@
     pointer-events: none;
     animation: flashFade 1.2s forwards ease-out;
 }
-
 @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
 
 /* --- HOME MENU LAYOUT --- */
@@ -214,6 +213,9 @@
     z-index: 5;
     text-align: left;
     width: 80%;
+    height: 70vh; /* Dikunci agar bar panduan menetap di bawah kontainer layout */
+    display: flex;
+    flex-direction: column;
     animation: slideFromLeft 0.6s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
@@ -222,6 +224,7 @@
     grid-template-columns: 450px 1fr;
     gap: 80px;
     margin-top: 40px;
+    flex-grow: 1;
 }
 
 .extras-list-container {
@@ -244,7 +247,7 @@
     width: 100%;
 }
 
-/* Redesign Gembok Putih Minimalis AAA */
+/* Simbol Gembok Vektor Putih Minimalis */
 .extra-char-lock-svg {
     width: 18px;
     height: 18px;
@@ -265,7 +268,6 @@
     transition: all 0.2s ease;
 }
 
-/* Hover & Active States */
 .extra-character-row:hover .extra-char-title,
 .extra-character-row.focused .extra-char-title {
     color: var(--text-bright);
@@ -311,7 +313,7 @@
     max-width: 500px;
 }
 
-/* --- DUAL DEVICE BAR (KEYBOARD / GAMEPAD BOTTOM INDICATOR) --- */
+/* --- INDICATOR BAR MENTOK DI BAWAH LAYAR --- */
 .gamepad-indicator-bar {
     position: absolute;
     bottom: 30px;
@@ -327,14 +329,17 @@
     animation: barFadeIn 0.4s ease-out;
 }
 
-/* Posisi Bar di Bagian Pojok Kiri Khusus Menu Extra Singkron Keyboard */
+/* Perbaikan Posisi Mentok Bawah Layar di Menu Extra */
 .gamepad-indicator-bar.left-align {
+    position: relative;
+    bottom: 0px;
+    left: 0px;
     right: auto;
-    left: 8%;
+    margin-top: auto; /* Mendorong paksa komponen ke ujung paling bawah layout */
     background: none;
     border: none;
     backdrop-filter: none;
-    padding: 0;
+    padding: 20px 0 0 0;
 }
 
 @keyframes barFadeIn {
@@ -354,7 +359,6 @@
     font-weight: bold;
 }
 
-/* Keyboard Tag Style [ESC] */
 .kb-btn-tag {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
@@ -378,7 +382,74 @@
     box-shadow: 0 0 10px rgba(189, 46, 46, 0.6);
 }
 
-/* --- OPTION/SETTINGS PANEL & STAGE SELECT --- */
+/* --- CHAPTER/STAGE SELECT PANEL & NEW REDESIGN BUTTON --- */
+.intrinsics-panel { 
+    width: 90%; 
+    max-width: 1200px; 
+    z-index: 5; 
+    text-align: center; 
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+    justify-content: space-between;
+    animation: panelFade 0.4s ease-out; 
+}
+.intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 30px; text-align: left; }
+.stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; }
+.stage-card { display: flex; flex-direction: column; align-items: center; position: relative; }
+.circle-wrapper { position: relative; width: 130px; height: 130px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+.circle-wrapper::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.1); }
+
+.stage-circle-active { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent-red); background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%); box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4); display: flex; justify-content: center; align-items: center; font-size: 2.2rem; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #ff1a1a; cursor: pointer; transition: all 0.2s ease; }
+.stage-circle-active.focused, .stage-circle-active:hover { transform: scale(1.1); box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red); }
+
+/* Tombol Chapter Terkunci Berubah Menjadi Simbol Vektor Putih */
+.stage-circle-locked { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #333333; background: rgba(15, 15, 15, 0.9); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease; }
+.stage-circle-locked.focused, .stage-circle-locked:hover { border-color: #666; background: rgba(30, 30, 30, 0.9); transform: scale(1.05); }
+
+.stage-lock-symbol-svg { width: 28px; height: 28px; fill: none; stroke: #666666; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+.stage-circle-locked:hover .stage-lock-symbol-svg, .stage-circle-locked.focused .stage-lock-symbol-svg { stroke: #ffffff; filter: drop-shadow(0 0 4px #fff); }
+
+.stage-label-active { text-transform: uppercase; font-size: 0.9rem; letter-spacing: 3px; color: var(--accent-red); text-shadow: 0 0 5px rgba(255, 26, 26, 0.5); margin-top: 5px; }
+.stage-label-locked { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #555555; margin-top: 5px; }
+
+/* Alert Pemberitahuan Kunci AAA */
+.chapter-lock-alert-box {
+    height: 40px;
+    color: var(--accent-red);
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 26, 26, 0.4);
+    animation: alertPulse 0.3s ease-out;
+}
+@keyframes alertPulse { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* REDESIGN: Tombol Hapus Background Merah, Ganti Jadi Border Merah Saja & Geser Kebawah */
+.back-btn-aaa-border {
+    background: transparent;
+    border: 2px solid var(--accent-red);
+    color: #ffffff;
+    padding: 14px 35px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    cursor: pointer;
+    width: fit-content;
+    margin: 40px auto 0 auto; /* Memberi ruang jarak ke bawah */
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 10px rgba(255, 26, 26, 0.05);
+}
+.back-btn-aaa-border:hover, .back-btn-aaa-border.focused {
+    background: rgba(255, 26, 26, 0.08);
+    box-shadow: 0 0 20px rgba(255, 26, 26, 0.4), inset 0 0 15px rgba(255, 26, 26, 0.2);
+    text-shadow: 0 0 8px #ffffff;
+}
+
+/* --- OPTION/SETTINGS PANEL --- */
 .thief-settings-panel { 
     width: 85%; height: 80%; background: var(--panel-bg); backdrop-filter: blur(10px); 
     border-left: 4px solid var(--accent-red); display: grid; grid-template-columns: 280px 1fr 320px; 
@@ -397,20 +468,9 @@
 .thief-toggle-btn { padding: 6px 20px; background: none; border: none; color: #555; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.2s; }
 .thief-toggle-btn.active { background: var(--accent-red); color: #fff; box-shadow: 0 0 10px rgba(255, 26, 26, 0.4); }
 .settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); font-size: 0.95rem; }
+
 .back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 12px 24px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: auto; cursor: pointer; width: 100%; transition: all 0.2s; }
 .back-btn.focused, .back-btn:hover { background: var(--accent-red); color: #000; box-shadow: 0 0 15px var(--accent-red); }
-
-.intrinsics-panel { width: 90%; max-width: 1200px; z-index: 5; text-align: center; animation: panelFade 0.4s ease-out; }
-.intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 50px; text-align: left; }
-.stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; }
-.stage-card { display: flex; flex-direction: column; align-items: center; position: relative; }
-.circle-wrapper { position: relative; width: 130px; height: 130px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
-.circle-wrapper::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.1); }
-.stage-circle-active { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent-red); background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%); box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4); display: flex; justify-content: center; align-items: center; font-size: 2.2rem; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #ff1a1a; cursor: pointer; transition: all 0.3s ease; }
-.stage-circle-active.focused, .stage-circle-active:hover { transform: scale(1.1); box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red); }
-.stage-circle-locked { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #444444; background: rgba(20, 20, 20, 0.85); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; color: #555555; cursor: not-allowed; }
-.stage-label-active { text-transform: uppercase; font-size: 0.9rem; letter-spacing: 3px; color: var(--accent-red); text-shadow: 0 0 5px rgba(255, 26, 26, 0.5); margin-top: 5px; }
-.stage-label-locked { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #444444; margin-top: 5px; }
 
 @keyframes panelSlideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
