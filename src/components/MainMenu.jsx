@@ -9,22 +9,25 @@ const MainMenu = () => {
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
   // MANAGEMENT DEVICE INPUT
-  const [inputMode, setInputMode] = useState('keyboard'); // keyboard, gamepad
+  const [inputMode, setInputMode] = useState('keyboard'); 
   const [focusedMenuIndex, setFocusedMenuIndex] = useState(0); 
-
-  // SUB-NAVIGATION INTERNAL
   const [focusedExtraIndex, setFocusedExtraIndex] = useState(0);
   
-  // STATE NOTIFIKASI KUNCI JURUS BAHASA INGGRIS
   const [chapterAlert, setChapterAlert] = useState('');
 
   // Audio References
   const audioRefs = {
+    introPress: useRef(new Audio('/sounds/intro_press.mp3')), // AUDIO BARU UNTUK PRESS ANYTHING
     press: useRef(new Audio('/sounds/press.mp3')),
     back: useRef(new Audio('/sounds/back.mp3')),
     bgm: useRef(new Audio('/sounds/bgm.mp3')),
     move: useRef(new Audio('/sounds/move.mp3')),
   };
+
+  // Web Audio API untuk Fade-In Musik
+  const audioCtxRef = useRef(null);
+  const trackRef = useRef(null);
+  const gainNodeRef = useRef(null);
 
   const menuOptions = ['startgame', 'extra', 'special', 'option', 'credit'];
   const tabsList = ['graphics', 'display', 'audio', 'gameplay'];
@@ -51,10 +54,31 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // Musik BGM Aktif Utama
+  // Pemicu Musik Utama dengan Aturan Fade-In
   useEffect(() => {
-    if (gameState !== 'intro' && gameState !== 'splash' && audioRefs.bgm.current) {
-      audioRefs.bgm.current.play().catch(() => {});
+    if (gameState === 'menu' && audioRefs.bgm.current) {
+      const audio = audioRefs.bgm.current;
+      
+      // Menginisialisasi Web Audio API untuk kontrol volume yang presisi
+      if (!audioCtxRef.current) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const gainNode = ctx.createGain();
+        const source = ctx.createMediaElementSource(audio);
+        
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        audioCtxRef.current = ctx;
+        gainNodeRef.current = gainNode;
+      }
+
+      // Mulai transisi suara dari 0 (hening)
+      gainNodeRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
+      audio.play().catch(() => {});
+      
+      // Menaikkan volume perlahan ke 1 dalam waktu 2.5 detik (Smooth Fade-In)
+      gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 2.5);
     }
   }, [gameState]);
 
@@ -65,22 +89,23 @@ const MainMenu = () => {
     }
   };
 
-  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA (KEYBOARD & MOUSE)
+  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA
   const handleStartInteraction = () => {
     if (isInteracted) return;
     setIsInteracted(true);
-    playSfx('press');
+    
+    playSfx('introPress'); // Memainkan SFX Baru khusus Press Anything
     setTriggerFlash(true);
+    
     setTimeout(() => {
       setGameState('menu');
       setTriggerFlash(false);
-    }, 1000);
+    }, 1200); // Memberikan jeda sedikit lebih lama agar animasi transisinya terasa megah
   };
 
   // KONTROL KEYBOARD & EVENT DETEKSI MOUSE ENGINE
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Jika menekan tombol keyboard, ganti mode display petunjuk ke keyboard
       if (inputMode !== 'keyboard') setInputMode('keyboard');
 
       if (gameState === 'splash') {
@@ -123,7 +148,6 @@ const MainMenu = () => {
       }
     };
 
-    // Saat menggerakkan mouse, kembalikan UI indikator tombol ke Keyboard/Mouse
     const handleMouseMove = () => {
       if (inputMode !== 'keyboard') setInputMode('keyboard');
     };
@@ -136,7 +160,7 @@ const MainMenu = () => {
     };
   }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
 
-  // SYSTEM CONTROLLER GAMEPAD NAVIGATION (DETEKSI PLAYSTATION STICK)
+  // SYSTEM CONTROLLER GAMEPAD NAVIGATION
   useEffect(() => {
     let animationFrameId;
     const scanGamepads = () => {
@@ -145,7 +169,6 @@ const MainMenu = () => {
       if (gp) {
         const now = Date.now();
         
-        // Cek interaksi stik untuk memicu perubahan ikon global di bawah
         const anyButtonPressed = gp.buttons.some(b => b.pressed);
         const axesMoved = gp.axes.some(a => Math.abs(a) > 0.5);
         if ((anyButtonPressed || axesMoved) && inputMode !== 'gamepad') {
@@ -162,12 +185,12 @@ const MainMenu = () => {
               playSfx('move'); setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length); lastButtonAction.current = now;
             } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
               playSfx('move'); setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length); lastButtonAction.current = now;
-            } else if (gp.buttons[0].pressed) { // Cross Button PS
+            } else if (gp.buttons[0].pressed) { 
               playSfx('press'); setGameState(menuOptions[focusedMenuIndex]); lastButtonAction.current = now;
             }
           }
           else if (gameState === 'extra') {
-            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; } // Circle Button PS
+            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; } 
             else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length); lastButtonAction.current = now; }
             else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length); lastButtonAction.current = now; }
           }
@@ -191,16 +214,13 @@ const MainMenu = () => {
     }
   };
 
-  // Fungsi Helper Navigasi Hover Suara khusus untuk Mouse
   const handleMouseHoverAction = (index, type = 'menu') => {
-    if (inputMode === 'keyboard') {
-      if (type === 'menu' && focusedMenuIndex !== index) {
-        playSfx('move');
-        setFocusedMenuIndex(index);
-      } else if (type === 'extra' && focusedExtraIndex !== index) {
-        playSfx('move');
-        setFocusedExtraIndex(index);
-      }
+    if (type === 'menu' && focusedMenuIndex !== index) {
+      playSfx('move');
+      setFocusedMenuIndex(index);
+    } else if (type === 'extra' && focusedExtraIndex !== index) {
+      playSfx('move');
+      setFocusedExtraIndex(index);
     }
   };
 
@@ -235,7 +255,7 @@ const MainMenu = () => {
 
       {/* 3. SCREEN HOME MENU UTAMA */}
       {gameState === 'menu' && (
-        <div className="order-layout">
+        <div className="order-layout main-menu-fade-in">
           <div className="order-header">
             <h1 className="order-title">LAST TRANSMISSION</h1>
             <span className="order-subtitle">2026</span>
@@ -244,7 +264,7 @@ const MainMenu = () => {
             {menuOptions.map((opt, idx) => (
               <li className="order-menu-item" key={opt}>
                 <button 
-                  className="order-menu-btn"
+                  className={`order-menu-btn ${focusedMenuIndex === idx ? 'focused' : ''}`}
                   style={{ 
                     color: focusedMenuIndex === idx ? '#ff1a1a' : '',
                     textShadow: focusedMenuIndex === idx ? '0 0 15px #ff1a1a' : '',
@@ -373,9 +393,9 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* FIXED GLOBAL NAV BAR: Mendukung Respons Dinamis Joystick PlayStation */}
+      {/* GLOBAL INDICATOR NAV BAR */}
       {gameState !== 'intro' && gameState !== 'splash' && (
-        <div className="global-gameplay-indicator-bar">
+        <div className="global-gameplay-indicator-bar global-bar-fade-in">
           {inputMode === 'keyboard' ? (
             <>
               <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Move / Navigate</div>
