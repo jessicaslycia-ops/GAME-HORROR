@@ -1,14 +1,14 @@
 /* --- ROOT & GLOBAL --- */
 :root {
     --text-bright: #ffffff;
-    --text-dim: #999999;
+    --text-dim: #888888;
     --accent-red: #ff1a1a;
-    --panel-bg: rgba(5, 5, 5, 0.96);
-    --border-color: rgba(255, 255, 255, 0.1);
+    --panel-bg: rgba(4, 4, 4, 0.96);
+    --border-color: rgba(255, 255, 255, 0.08);
 }
 
 .horror-game-container {
-    background-color: #030303;
+    background-color: #020202;
     background-size: cover;
     background-position: center;
     color: var(--text-bright);
@@ -25,13 +25,13 @@
     user-select: none;
 }
 
-/* Background Glitch & Flicker */
+/* Background Glitch Effect */
 .glitch-bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
     pointer-events: none;
-    background: radial-gradient(circle, rgba(45, 5, 5, 0.2) 0%, rgba(0, 0, 0, 0.95) 90%);
+    background: radial-gradient(circle, rgba(40, 5, 5, 0.15) 0%, rgba(0, 0, 0, 0.96) 90%);
     animation: screenFlicker 0.15s infinite;
 }
 
@@ -40,7 +40,7 @@
     50% { opacity: 0.85; }
 }
 
-/* --- PARTIKEL PUTIH --- */
+/* --- PARTIKEL --- */
 .particles-container {
     position: absolute;
     bottom: 0; left: 0; width: 100%; height: 100%;
@@ -51,7 +51,7 @@
 .particle {
     position: absolute;
     bottom: -10px;
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     animation: floatUp 6s infinite ease-in-out;
 }
@@ -64,12 +64,12 @@
 
 @keyframes floatUp {
     0% { transform: translateY(0) scale(1); opacity: 0; }
-    20% { opacity: 0.6; }
-    90% { opacity: 0.2; }
+    20% { opacity: 0.5; }
+    90% { opacity: 0.1; }
     100% { transform: translateY(-105vh) scale(0.5); opacity: 0; }
 }
 
-/* --- FASE 1: INTRO --- */
+/* --- SCREEN INTRO --- */
 .intro-screen {
     font-size: 2.5rem;
     letter-spacing: 12px;
@@ -84,7 +84,7 @@
     100% { opacity: 0; transform: scale(1.05); }
 }
 
-/* --- FASE 2: SPLASH SCREEN (PRESS ANYTHING) --- */
+/* --- SCREEN SPLASH --- */
 .splash-screen {
     width: 100%;
     height: 100%;
@@ -101,7 +101,7 @@
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    background: radial-gradient(circle, rgba(120, 10, 10, 0.25) 0%, rgba(20, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.98) 100%);
+    background: radial-gradient(circle, rgba(120, 10, 10, 0.2) 0%, rgba(15, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.99) 100%);
     z-index: 1;
 }
 
@@ -142,7 +142,7 @@
     100% { opacity: 0; }
 }
 
-/* --- FASE 3: HOME MENU --- */
+/* --- HOME MENU LAYOUT (LAST TRANSMISSION) --- */
 .order-layout {
     position: absolute;
     left: 8%;
@@ -159,13 +159,13 @@
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
     width: fit-content;
-    animation: slideFromLeft 1.2s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+    animation: slideFromLeft 1s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
 .order-title {
     font-size: 3.5rem;
     font-weight: 400;
-    letter-spacing: 10px;
+    letter-spacing: 8px;
     text-transform: uppercase;
     margin: 0;
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
@@ -190,17 +190,17 @@
     margin: 18px 0;
     opacity: 0;
     transform: translateX(-50px);
-    animation: slideFromLeft 1s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+    animation: slideFromLeft 0.8s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
-.order-menu-item:nth-child(1) { animation-delay: 0.2s; }
-.order-menu-item:nth-child(2) { animation-delay: 0.35s; }
-.order-menu-item:nth-child(3) { animation-delay: 0.5s; }
-.order-menu-item:nth-child(4) { animation-delay: 0.65s; }
-.order-menu-item:nth-child(5) { animation-delay: 0.8s; }
+.order-menu-item:nth-child(1) { animation-delay: 0.1s; }
+.order-menu-item:nth-child(2) { animation-delay: 0.2s; }
+.order-menu-item:nth-child(3) { animation-delay: 0.3s; }
+.order-menu-item:nth-child(4) { animation-delay: 0.4s; }
+.order-menu-item:nth-child(5) { animation-delay: 0.5s; }
 
 @keyframes slideFromLeft {
-    from { opacity: 0; transform: translateX(-60px); }
+    from { opacity: 0; transform: translateX(-50px); }
     to { opacity: 1; transform: translateX(0); }
 }
 
@@ -221,7 +221,107 @@
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
-/* --- PANEL SETTING (OPTION) --- */
+/* --- PREMIUM AAA EXTRAS MENU DESIGN --- */
+.aaa-extras-layout {
+    position: absolute;
+    left: 8%;
+    top: 20%;
+    z-index: 5;
+    text-align: left;
+    width: 80%;
+    animation: slideFromLeft 0.6s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+}
+
+.extras-menu-split {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    gap: 80px;
+    margin-top: 40px;
+}
+
+.extras-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.extra-character-row {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 10px 0;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.extra-char-lock-icon {
+    font-size: 1.1rem;
+    color: #555555;
+    transition: color 0.2s;
+}
+
+.extra-char-title {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: all 0.2s ease;
+}
+
+/* Hover & Active States (AAA Cinematic Style) */
+.extra-character-row:hover .extra-char-title,
+.extra-character-row.focused .extra-char-title {
+    color: var(--text-bright);
+    letter-spacing: 5px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.extra-character-row:hover .extra-char-lock-icon,
+.extra-character-row.focused .extra-char-lock-icon {
+    color: var(--accent-red);
+    text-shadow: 0 0 10px var(--accent-red);
+}
+
+/* Right-Side Realtime Description Panel */
+.extras-description-panel {
+    border-left: 1px solid var(--border-color);
+    padding-left: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 200px;
+    animation: descriptionFadeIn 0.3s ease-out;
+}
+
+@keyframes descriptionFadeIn {
+    from { opacity: 0; transform: translateX(15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.extras-desc-title-sub {
+    font-size: 0.9rem;
+    color: var(--accent-red);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.extras-desc-main-text {
+    font-family: Arial, sans-serif;
+    font-size: 1rem;
+    color: #cccccc;
+    line-height: 1.6;
+    letter-spacing: 1px;
+    max-width: 500px;
+}
+
+/* --- OPTION/SETTINGS PANEL --- */
 .thief-settings-panel { 
     width: 85%; 
     height: 80%; 
@@ -340,51 +440,6 @@
     font-size: 0.95rem; 
 }
 
-/* --- EXTRA MENU (LIST KARAKTER) --- */
-.extra-content-list {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    text-align: left;
-    margin-top: 20px;
-    max-height: 380px;
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-.extra-item-row {
-    display: flex;
-    align-items: baseline;
-    gap: 20px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.extra-item-row.focused {
-    border-color: var(--accent-red);
-    background: rgba(255, 26, 26, 0.04);
-}
-
-.extra-title {
-    font-size: 1.5rem;
-    letter-spacing: 3px;
-    color: #ffffff;
-    text-transform: uppercase;
-    font-weight: bold;
-    min-width: 220px;
-}
-
-.extra-desc {
-    font-size: 0.95rem;
-    color: #aaaaaa;
-    font-family: Arial, sans-serif;
-    letter-spacing: 1px;
-    line-height: 1.4;
-}
-
 .back-btn { 
     background: none; 
     border: 1px solid var(--accent-red); 
@@ -406,7 +461,7 @@
     box-shadow: 0 0 15px var(--accent-red); 
 }
 
-/* --- STAGE SELECT PANEL --- */
+/* --- CHAPTER/STAGE SELECT PANEL --- */
 .intrinsics-panel { width: 90%; max-width: 1200px; z-index: 5; text-align: center; animation: panelFade 0.4s ease-out; }
 .intrinsics-title-header { text-transform: uppercase; font-size: 1.8rem; letter-spacing: 6px; color: var(--text-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 50px; text-align: left; }
 .stages-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; justify-content: center; align-items: flex-start; }
