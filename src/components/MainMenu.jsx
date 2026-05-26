@@ -8,10 +8,9 @@ const MainMenu = () => {
   const [triggerFlash, setTriggerFlash] = useState(false);
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
-  // FLAGS UNTUK TRANSISI SIFATNYA ONCE
+  // FLAGS TRANSISI JAMINAN ANTI-BLOCKED (POIN 1 & 2)
   const [hasCompletedIntro, setHasCompletedIntro] = useState(false); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
-  const [renderMenuContent, setRenderMenuContent] = useState(false); // Solusi Poin 2: Mencegah menu mengintip duluan
 
   // MANAGEMENT DEVICE INPUT
   const [inputMode, setInputMode] = useState('keyboard'); 
@@ -48,18 +47,12 @@ const MainMenu = () => {
     if (audioRefs.bgm.current) audioRefs.bgm.current.loop = true;
   }, []);
 
-  // Poin 1: Intro ke Splash Screen Diperhalus Total Tanpa Kebocoran Background
+  // Poin 1: Fix Alur Intro Made by Beben Muncul Sempurna Lalu Memudar ke Splash
   useEffect(() => {
     if (gameState === 'intro') {
       const timer = setTimeout(() => {
-        setIsTransitioning(true); // Memicu layar menggelap/menghalus terlebih dahulu
-        
-        setTimeout(() => {
-          setGameState('splash');
-          setIsTransitioning(false); // Kembalikan state transisi setelah posisi aman
-        }, 800); // Jeda transisi antar state
-        
-      }, 3500);
+        setGameState('splash');
+      }, 3500); // Durasi teks Beben tampil di layar hitam murni
       return () => clearTimeout(timer);
     }
   }, [gameState]);
@@ -107,7 +100,7 @@ const MainMenu = () => {
     }
   };
 
-  // Transisi Menuju Home Menu Utama
+  // Transisi dari Splash Ke Menu Utama (Poin 2 Fix)
   const handleStartInteraction = () => {
     if (isInteracted || isTransitioning) return;
     setIsInteracted(true);
@@ -117,25 +110,18 @@ const MainMenu = () => {
     startBgmWithFade(); 
     setTriggerFlash(true);
     
-    // Poin 2: Tahan render konten teks menu sampai flash dan blur awal selesai diproses background
+    // Tahan visual splash screen selama 2.2 detik agar sinkron dengan flash & transisi CSS
     setTimeout(() => {
       setGameState('menu');
       setIsTransitioning(false);
       setTriggerFlash(false);
-      
-      // Beri jeda micro-seconds agar struktur CSS siap, baru teks dimunculkan mengalir
-      setTimeout(() => {
-        setRenderMenuContent(true);
-      }, 150);
-
     }, 2200); 
   };
 
-  // Fungsi Kembali ke Splash Screen (Press Anything)
+  // Fungsi Kembali ke Splash Screen (Press Anything) dari Home Menu
   const handleBackToSplash = () => {
     playSfx('back');
     setIsTransitioning(true);
-    setRenderMenuContent(false); // Sembunyikan konten menu dengan cepat saat mundur
     fadeOutBgm(); 
 
     setTimeout(() => {
@@ -157,7 +143,7 @@ const MainMenu = () => {
         return;
       }
 
-      if (gameState === 'menu' && renderMenuContent) {
+      if (gameState === 'menu') {
         if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
           playSfx('move');
           setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length);
@@ -205,7 +191,7 @@ const MainMenu = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning, renderMenuContent]);
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning]);
 
   // ENGINE KONTROL GAMEPAD
   useEffect(() => {
@@ -227,7 +213,7 @@ const MainMenu = () => {
             handleStartInteraction();
             lastButtonAction.current = now;
           }
-          else if (gameState === 'menu' && renderMenuContent) {
+          else if (gameState === 'menu') {
             if (gp.buttons[13].pressed || gp.axes[1] > 0.5) {
               playSfx('move'); setFocusedMenuIndex(prev => (prev + 1) % menuOptions.length); lastButtonAction.current = now;
             } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
@@ -252,7 +238,7 @@ const MainMenu = () => {
     };
     animationFrameId = requestAnimationFrame(scanGamepads);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning, renderMenuContent]);
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted, isTransitioning]);
 
   const handleChapterClick = (chapterNum) => {
     if (chapterNum === 1) {
@@ -283,16 +269,10 @@ const MainMenu = () => {
     }
   };
 
-  // Logika Pemutus Kelas Background Supaya Tidak Bocor Saat Intro Menuju Splash
-  const getDynamicBackground = () => {
-    if (gameState === 'intro') return 'none';
-    return `url(${bgImage})`;
-  };
-
   return (
     <div 
-      className={`horror-game-container ${isTransitioning ? 'screen-fade-out-global' : ''} ${gameState === 'splash' ? 'splash-bg-active' : ''}`} 
-      style={{ backgroundImage: getDynamicBackground() }}
+      className={`horror-game-container ${isTransitioning ? 'screen-fade-out-global' : ''}`} 
+      style={{ backgroundImage: gameState !== 'intro' ? `url(${bgImage})` : 'none' }}
     >
       {triggerFlash && <div className="flash-overlay"></div>}
       {gameState !== 'intro' && <div className="glitch-bg"></div>}
@@ -323,8 +303,8 @@ const MainMenu = () => {
 
       {/* 3. SCREEN HOME MENU UTAMA */}
       {gameState === 'menu' && (
-        /* Poin 2: Menggunakan renderMenuContent agar teks baru diizinkan muncul saat struktur CSS sudah siap */
-        <div className={`order-layout ${hasCompletedIntro ? '' : 'main-menu-fade-in'} ${renderMenuContent ? 'content-visible' : 'content-hidden'}`}>
+        /* Poin 2: Menggunakan class dinamis berbasis hasCompletedIntro tanpa memblokir opasitas element mentah */
+        <div className={`order-layout ${hasCompletedIntro ? 'menu-instant-ready' : 'main-menu-fade-in'}`}>
           <div className="order-header">
             <h1 className="order-title">LAST TRANSMISSION</h1>
             <span className="order-subtitle">2026</span>
@@ -448,7 +428,7 @@ const MainMenu = () => {
       )}
 
       {/* GLOBAL INDICATOR NAV BAR */}
-      {gameState !== 'intro' && gameState !== 'splash' && renderMenuContent && (
+      {gameState !== 'intro' && gameState !== 'splash' && (
         <div className={`global-gameplay-indicator-bar ${hasCompletedIntro ? '' : 'global-bar-fade-in'}`}>
           {inputMode === 'keyboard' ? (
             <>
