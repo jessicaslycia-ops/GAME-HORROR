@@ -17,17 +17,17 @@ const MainMenu = () => {
 
   // Audio References
   const audioRefs = {
-    introPress: useRef(new Audio('/sounds/intro_press.mp3')), // AUDIO BARU UNTUK PRESS ANYTHING
+    introPress: useRef(new Audio('/sounds/intro_press.mp3')), 
     press: useRef(new Audio('/sounds/press.mp3')),
     back: useRef(new Audio('/sounds/back.mp3')),
     bgm: useRef(new Audio('/sounds/bgm.mp3')),
     move: useRef(new Audio('/sounds/move.mp3')),
   };
 
-  // Web Audio API untuk Fade-In Musik
+  // Web Audio API & Flags
   const audioCtxRef = useRef(null);
-  const trackRef = useRef(null);
   const gainNodeRef = useRef(null);
+  const isBgmStarted = useRef(false); // FLAG UTAMA: Kunci agar lagu tidak mengulang-ulang
 
   const menuOptions = ['startgame', 'extra', 'special', 'option', 'credit'];
   const tabsList = ['graphics', 'display', 'audio', 'gameplay'];
@@ -54,12 +54,12 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // Pemicu Musik Utama dengan Aturan Fade-In
+  // FIX UTAMA NO 1: Fade-in Musik Sekali Saja Saat Transisi Menuju Menu Utama
   useEffect(() => {
-    if (gameState === 'menu' && audioRefs.bgm.current) {
+    if (gameState === 'menu' && audioRefs.bgm.current && !isBgmStarted.current) {
       const audio = audioRefs.bgm.current;
+      isBgmStarted.current = true; // Kunci aktif, BGM tidak akan terpicu ulang lagi jika kembali dari sub-menu
       
-      // Menginisialisasi Web Audio API untuk kontrol volume yang presisi
       if (!audioCtxRef.current) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioContext();
@@ -73,12 +73,11 @@ const MainMenu = () => {
         gainNodeRef.current = gainNode;
       }
 
-      // Mulai transisi suara dari 0 (hening)
       gainNodeRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
       audio.play().catch(() => {});
       
-      // Menaikkan volume perlahan ke 1 dalam waktu 2.5 detik (Smooth Fade-In)
-      gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 2.5);
+      // Memperhalus kenaikan volume musik selama 3.5 detik pelan-pelan
+      gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 3.5);
     }
   }, [gameState]);
 
@@ -89,18 +88,19 @@ const MainMenu = () => {
     }
   };
 
-  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA
+  // KONTROL HANDLING INTERAKSI MASUK KE UTAMA (Mendukung Fade Halus)
   const handleStartInteraction = () => {
     if (isInteracted) return;
     setIsInteracted(true);
     
-    playSfx('introPress'); // Memainkan SFX Baru khusus Press Anything
+    playSfx('introPress'); 
     setTriggerFlash(true);
     
+    // Memperlama durasi jeda transisi layar dari splash menuju home menu agar terasa sinematik
     setTimeout(() => {
       setGameState('menu');
       setTriggerFlash(false);
-    }, 1200); // Memberikan jeda sedikit lebih lama agar animasi transisinya terasa megah
+    }, 2200); 
   };
 
   // KONTROL KEYBOARD & EVENT DETEKSI MOUSE ENGINE
@@ -158,7 +158,7 @@ const MainMenu = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted]);
 
   // SYSTEM CONTROLLER GAMEPAD NAVIGATION
   useEffect(() => {
@@ -203,7 +203,7 @@ const MainMenu = () => {
     };
     animationFrameId = requestAnimationFrame(scanGamepads);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex]);
+  }, [gameState, inputMode, focusedMenuIndex, focusedExtraIndex, isInteracted]);
 
   const handleChapterClick = (chapterNum) => {
     if (chapterNum === 1) {
@@ -221,6 +221,25 @@ const MainMenu = () => {
     } else if (type === 'extra' && focusedExtraIndex !== index) {
       playSfx('move');
       setFocusedExtraIndex(index);
+    }
+  };
+
+  // FIX NO 3: Fungsi Pembantu Style Dinamis Akibat Perbedaan Device Input (Keyboard vs Joystick)
+  const getMenuButtonStyle = (idx) => {
+    if (focusedMenuIndex !== idx) return {};
+    
+    if (inputMode === 'gamepad') {
+      return {
+        color: '#ff1a1a',
+        textShadow: '0 0 25px #ff1a1a, 0 0 10px #ff1a1a',
+        letterSpacing: '6px'
+      };
+    } else {
+      return {
+        color: '#ffffff',
+        textShadow: '0 0 20px rgba(255, 26, 26, 0.9), 0 0 8px rgba(255, 26, 26, 0.5)',
+        letterSpacing: '6px'
+      };
     }
   };
 
@@ -246,8 +265,8 @@ const MainMenu = () => {
       {/* 2. SCREEN SPLASH */}
       {gameState === 'splash' && (
         <div className="splash-screen" onClick={handleStartInteraction}>
-          <div className="horror-overlay"></div>
-          <div className={`press-anything-text ${isInteracted ? 'interacted' : ''}`}>
+          <div className="horror-overlay-slow"></div>
+          <div className={`press-anything-text ${isInteracted ? 'interacted-fade-out' : ''}`}>
             {isInteracted ? 'Accessing...' : 'Press Anything'}
           </div>
         </div>
@@ -265,11 +284,7 @@ const MainMenu = () => {
               <li className="order-menu-item" key={opt}>
                 <button 
                   className={`order-menu-btn ${focusedMenuIndex === idx ? 'focused' : ''}`}
-                  style={{ 
-                    color: focusedMenuIndex === idx ? '#ff1a1a' : '',
-                    textShadow: focusedMenuIndex === idx ? '0 0 15px #ff1a1a' : '',
-                    letterSpacing: focusedMenuIndex === idx ? '6px' : ''
-                  }}
+                  style={getMenuButtonStyle(idx)}
                   onMouseEnter={() => handleMouseHoverAction(idx, 'menu')}
                   onClick={() => {
                     playSfx('press'); setGameState(opt);
