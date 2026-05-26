@@ -8,10 +8,10 @@ const MainMenu = () => {
   const [triggerFlash, setTriggerFlash] = useState(false);
   const [bgImage, setBgImage] = useState('/bg-default.jpg');
 
-  // FLAGS UNTUK TRANSISI SIFATNYA ONCE
-  const [hasCompletedIntro, setHasCompletedIntro] = useState(false); 
+  // FLAGS UNTUK TRANSISI SIFATNYA ONCE & RE-TRIGGER ANIMATION
   const [isTransitioning, setIsTransitioning] = useState(false); 
-  const [showMenuText, setShowMenuText] = useState(false); // Menggantikan renderMenuContent dengan sistem trigger class yang aman
+  const [showMenuText, setShowMenuText] = useState(false); 
+  const [menuTransitionState, setMenuTransitionState] = useState(''); // 'slide-in' atau '' untuk reset animasi
 
   // MANAGEMENT DEVICE INPUT
   const [inputMode, setInputMode] = useState('keyboard'); 
@@ -64,7 +64,7 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // Fungsi Fade-In Audio
+  // Fungsi Fade-In Audio BGM saat masuk Menu Utama
   const startBgmWithFade = () => {
     const audio = audioRefs.bgm.current;
     if (!audio) return;
@@ -82,21 +82,30 @@ const MainMenu = () => {
       gainNodeRef.current = gainNode;
     }
 
+    // Reset posisi audio ke 0 agar memutar dari awal
+    audio.currentTime = 0;
     gainNodeRef.current.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
     audio.play().catch(() => {});
-    gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 4.0);
+    gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 3.0);
   };
 
-  // Fungsi Fade-Out Audio
+  // Poin 1: Perbaikan Fungsi Fade-Out Audio BGM saat kembali ke Splash Screen
   const fadeOutBgm = () => {
     if (audioCtxRef.current && gainNodeRef.current) {
-      gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 1.5);
+      // Turunkan volume ke 0 dalam waktu 1.2 detik
+      gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 1.2);
       setTimeout(() => {
         if (audioRefs.bgm.current) {
           audioRefs.bgm.current.pause();
           audioRefs.bgm.current.currentTime = 0;
         }
-      }, 1500);
+      }, 1200);
+    } else {
+      // Fallback jika Web Audio belum terinisialisasi dengan sempurna
+      if (audioRefs.bgm.current) {
+        audioRefs.bgm.current.pause();
+        audioRefs.bgm.current.currentTime = 0;
+      }
     }
   };
 
@@ -122,25 +131,41 @@ const MainMenu = () => {
       setIsTransitioning(false);
       setTriggerFlash(false);
       
-      // Beri jeda 50ms saja agar siklus render DOM siap, lalu langsung trigger transisinya
       setTimeout(() => {
         setShowMenuText(true);
+        setMenuTransitionState('slide-in'); // Trigger animasi geser masuk dari kiri
       }, 50);
     }, 2200); 
   };
 
-  // Fungsi Kembali ke Splash Screen
+  // Poin 1: Fungsi Kembali ke Splash Screen (BGM Ikut Dimatikan)
   const handleBackToSplash = () => {
     playSfx('back');
     setIsTransitioning(true);
     setShowMenuText(false); 
+    setMenuTransitionState(''); // Bersihkan kelas animasi menu
+    fadeOutBgm(); // Menghentikan dan me-fadeout musik latar menu utama
 
     setTimeout(() => {
       setIsInteracted(false);
-      setHasCompletedIntro(false); 
       setGameState('splash');
       setIsTransitioning(false);
     }, 1500);
+  };
+
+  // Poin 2: Fungsi Global untuk Mengembalikan User ke Menu Utama dengan Trigger Animasi Ulang
+  const handleReturnToMenu = () => {
+    playSfx('back');
+    setShowMenuText(false);
+    setMenuTransitionState(''); // Reset state terlebih dahulu agar DOM menyegarkan animasinya
+    
+    setGameState('menu');
+    setChapterAlert('');
+
+    setTimeout(() => {
+      setShowMenuText(true);
+      setMenuTransitionState('slide-in'); // Picu kembali animasi geser masuk perlahan dari kiri
+    }, 50);
   };
 
   // ENGINE KONTROL KEYBOARD & MOUSE
@@ -163,7 +188,6 @@ const MainMenu = () => {
           setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length);
         } else if (e.key === 'Enter') {
           playSfx('press');
-          setHasCompletedIntro(true); 
           setGameState(menuOptions[focusedMenuIndex]);
         } else if (e.key === 'Escape') {
           handleBackToSplash(); 
@@ -172,8 +196,7 @@ const MainMenu = () => {
 
       else if (gameState === 'extra') {
         if (e.key === 'Escape') {
-          playSfx('back');
-          setGameState('menu');
+          handleReturnToMenu();
         } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
           playSfx('move');
           setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length);
@@ -185,9 +208,7 @@ const MainMenu = () => {
 
       else if (['option', 'startgame', 'credit', 'special'].includes(gameState)) {
         if (e.key === 'Escape') {
-          playSfx('back');
-          setGameState('menu');
-          setChapterAlert(''); 
+          handleReturnToMenu();
         }
       }
     };
@@ -230,18 +251,18 @@ const MainMenu = () => {
             } else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) {
               playSfx('move'); setFocusedMenuIndex(prev => (prev - 1 + menuOptions.length) % menuOptions.length); lastButtonAction.current = now;
             } else if (gp.buttons[0].pressed) { 
-              playSfx('press'); setHasCompletedIntro(true); setGameState(menuOptions[focusedMenuIndex]); lastButtonAction.current = now;
+              playSfx('press'); setGameState(menuOptions[focusedMenuIndex]); lastButtonAction.current = now;
             } else if (gp.buttons[1].pressed) {
               handleBackToSplash(); lastButtonAction.current = now;
             }
           }
           else if (gameState === 'extra') {
-            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; } 
+            if (gp.buttons[1].pressed) { handleReturnToMenu(); lastButtonAction.current = now; } 
             else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev + 1) % extraCharacters.length); lastButtonAction.current = now; }
             else if (gp.buttons[12].pressed || gp.axes[1] < -0.5) { playSfx('move'); setFocusedExtraIndex(prev => (prev - 1 + extraCharacters.length) % extraCharacters.length); lastButtonAction.current = now; }
           }
           else if (['startgame', 'special', 'credit', 'option'].includes(gameState)) {
-            if (gp.buttons[1].pressed) { playSfx('back'); setGameState('menu'); lastButtonAction.current = now; }
+            if (gp.buttons[1].pressed) { handleReturnToMenu(); lastButtonAction.current = now; }
           }
         }
       }
@@ -314,7 +335,8 @@ const MainMenu = () => {
 
       {/* 3. SCREEN HOME MENU UTAMA */}
       {gameState === 'menu' && (
-        <div className={`order-layout ${hasCompletedIntro ? '' : 'main-menu-fade-in'} ${showMenuText ? 'content-visible' : 'content-hidden'}`}>
+        /* Poin 2: Menggabungkan state menuTransitionState agar memicu ulang kelas CSS animasi masuk */
+        <div className={`order-layout ${menuTransitionState} ${showMenuText ? 'content-visible' : 'content-hidden'}`}>
           <div className="order-header">
             <h1 className="order-title">LAST TRANSMISSION</h1>
             <span className="order-subtitle">2026</span>
@@ -329,7 +351,6 @@ const MainMenu = () => {
                   onClick={() => {
                     if (isTransitioning) return;
                     playSfx('press'); 
-                    setHasCompletedIntro(true); 
                     setGameState(opt);
                   }}
                 >
@@ -370,7 +391,7 @@ const MainMenu = () => {
             ))}
           </div>
           <div className="chapter-lock-alert-box">{chapterAlert}</div>
-          <button className="back-btn-aaa-border" onClick={() => { playSfx('back'); setGameState('menu'); setChapterAlert(''); }}>Return To Menu</button>
+          <button className="back-btn-aaa-border" onClick={handleReturnToMenu}>Return To Menu</button>
         </div>
       )}
 
@@ -388,7 +409,7 @@ const MainMenu = () => {
             {activeTab === 'display' && <div className="thief-row"><span className="thief-label">Resolution</span><div className="thief-toggle-group"><button className="thief-toggle-btn active">1920x1080</button></div></div>}
             {activeTab === 'audio' && <div className="thief-row"><span className="thief-label">Master Volume</span><div className="thief-toggle-group"><button className="thief-toggle-btn active">100%</button></div></div>}
             {activeTab === 'gameplay' && <div className="thief-row"><span className="thief-label">Difficulty</span><div className="thief-toggle-group"><button className="thief-toggle-btn active">HARDCORE</button></div></div>}
-            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Apply & Save</button>
+            <button className="back-btn" onClick={handleReturnToMenu}>Apply & Save</button>
           </div>
           <div className="settings-description"><p>System Mode: Active Dual Detection.</p></div>
         </div>
@@ -421,7 +442,7 @@ const MainMenu = () => {
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
             <h2>Special Content</h2>
             <p style={{ margin: '30px 0', fontSize: '1.4rem', color: '#ccc' }}>Bonus Developer Commentary and Behind the Scenes.</p>
-            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
+            <button className="back-btn" onClick={handleReturnToMenu}>Back</button>
           </div>
         </div>
       )}
@@ -432,14 +453,14 @@ const MainMenu = () => {
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
             <h2>Credits</h2>
             <p style={{ margin: '40px 0', fontSize: '2.2rem', color: '#ffffff', letterSpacing: '3px' }}>Created by Nurull</p>
-            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
+            <button className="back-btn" onClick={handleReturnToMenu}>Back</button>
           </div>
         </div>
       )}
 
       {/* GLOBAL INDICATOR NAV BAR */}
       {gameState !== 'intro' && gameState !== 'splash' && showMenuText && (
-        <div className={`global-gameplay-indicator-bar ${hasCompletedIntro ? '' : 'global-bar-fade-in'}`}>
+        <div className="global-gameplay-indicator-bar global-bar-fade-in">
           {inputMode === 'keyboard' ? (
             <>
               <div className="gamepad-btn-hint"><span className="kb-btn-tag">W/S</span> Move / Navigate</div>
