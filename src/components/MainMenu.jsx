@@ -4,23 +4,26 @@ import '../styles/MainMenu.css';
 const MainMenu = () => {
   const [gameState, setGameState] = useState('intro'); // intro, splash, menu, startgame, option, credit, extra, special
   const [activeTab, setActiveTab] = useState('graphics');
-  const [bgImage, setBgImage] = useState(null);
   const [isInteracted, setIsInteracted] = useState(false);
-  const [triggerFlash, setTriggerFlash] = useState(false); // State pemicu kilatan flash putih
+  const [triggerFlash, setTriggerFlash] = useState(false);
 
-  // Audio References
+  // 1. OTOMATIS LOAD ASSET GAMBAR DEFAULT DARI FOLDER PUBLIC
+  const [bgImage, setBgImage] = useState('/bg-default.jpg'); 
+
+  // 2. OTOMATIS INFEKSI & PATH SOUND DEFAULT DARI FOLDER PUBLIC
   const audioRefs = {
-    press: useRef(null),
-    back: useRef(null),
-    bgm: useRef(null),
-    move: useRef(null),
+    press: useRef(new Audio('/sounds/press.mp3')),
+    back: useRef(new Audio('/sounds/back.mp3')),
+    bgm: useRef(new Audio('/sounds/bgm.mp3')),
+    move: useRef(new Audio('/sounds/move.mp3')),
   };
 
+  // State Nama File Audio (Jika user nanti upload baru, namanya akan berubah)
   const [audioNames, setAudioNames] = useState({
-    press: 'Default Synth',
-    back: 'Default Synth',
-    bgm: 'Default Synth',
-    move: 'Default Synth',
+    press: 'bg-default.mp3 (System)',
+    back: 'back.mp3 (System)',
+    bgm: 'bgm.mp3 (System)',
+    move: 'move.mp3 (System)',
   });
 
   const [settings, setSettings] = useState({
@@ -28,6 +31,13 @@ const MainMenu = () => {
     shadow: 'HIGH',
     cinematic: 'ON',
   });
+
+  // Setelan awal untuk BGM bawaan sistem agar otomatis me-looping (mengulang)
+  useEffect(() => {
+    if (audioRefs.bgm.current) {
+      audioRefs.bgm.current.loop = true;
+    }
+  }, []);
 
   // Fase 1: Intro Otomatis (4 Detik)
   useEffect(() => {
@@ -40,11 +50,13 @@ const MainMenu = () => {
   // Musik BGM otomatis aktif berulang di Home Menu & Panel Utama
   useEffect(() => {
     if ((gameState === 'menu' || gameState === 'startgame' || gameState === 'option') && audioRefs.bgm.current) {
-      audioRefs.bgm.current.play().catch(() => {});
+      audioRefs.bgm.current.play().catch(() => {
+        console.log("Browser memblokir autoplay musik sebelum user berinteraksi.");
+      });
     }
   }, [gameState]);
 
-  // Fungsi Unggah Berkas Media
+  // Fungsi Unggah Berkas Media Manual (Tetap dipertahankan agar user bisa ganti sesuka hati)
   const handleFileUpload = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -64,26 +76,11 @@ const MainMenu = () => {
     }
   };
 
-  // Trigger Efek Suara
+  // Trigger Efek Suara (Tidak menggunakan synth generator lagi, melainkan file asli)
   const playSfx = (type) => {
     if (audioRefs[type].current) {
       audioRefs[type].current.currentTime = 0;
-      audioRefs[type].current.play().catch(() => {});
-    } else {
-      try {
-        const context = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = context.createOscillator();
-        const gain = context.createGain();
-        osc.connect(gain);
-        gain.connect(context.destination);
-        if (type === 'move') osc.frequency.setValueAtTime(140, context.currentTime);
-        if (type === 'press') osc.frequency.setValueAtTime(280, context.currentTime);
-        if (type === 'back') osc.frequency.setValueAtTime(190, context.currentTime);
-        gain.gain.setValueAtTime(0.08, context.currentTime);
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.12);
-        osc.stop(context.currentTime + 0.12);
-      } catch (e) {}
+      audioRefs[type].current.play().catch((err) => console.log("Gagal memutar audio:", err));
     }
   };
 
@@ -99,7 +96,7 @@ const MainMenu = () => {
     // Mengalihkan ke Home Menu dengan mulus setelah flash meredup
     setTimeout(() => {
       setGameState('menu');
-      setTriggerFlash(false); // Matikan flash agar tidak menutupi menu utama
+      setTriggerFlash(false);
     }, 1000);
   };
 
@@ -114,7 +111,7 @@ const MainMenu = () => {
   return (
     <div 
       className="horror-game-container"
-      style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'none' }}
+      style={{ backgroundImage: `url(${bgImage})` }}
     >
       {/* Efek Kilatan Flash Putih Terang */}
       {triggerFlash && <div className="flash-overlay"></div>}
@@ -144,7 +141,6 @@ const MainMenu = () => {
       {/* 2. LAYAR SPLASH */}
       {gameState === 'splash' && (
         <div className="splash-screen" onClick={handleStartInteraction}>
-          {/* Efek Gradasi Merah & Hitam Horor */}
           <div className="horror-overlay"></div>
           <div className={`press-anything-text ${isInteracted ? 'interacted' : ''}`}>
             {isInteracted ? 'Accessing...' : 'Press Anything'}
@@ -152,7 +148,7 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 3. LAYAR HOME MENU UTAMA (PERUBAHAN JUDUL: FINAL END) */}
+      {/* 3. LAYAR HOME MENU UTAMA */}
       {gameState === 'menu' && (
         <div className="order-layout">
           <div className="order-header">
