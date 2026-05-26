@@ -11,7 +11,7 @@
     background-color: #020202;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat; /* Mengunci agar gambar background tidak menduplikasi diri */
+    background-repeat: no-repeat; 
     color: var(--text-bright);
     font-family: 'Times New Roman', Times, serif;
     height: 100vh;
@@ -24,19 +24,21 @@
     box-sizing: border-box;
 }
 
-/* Background Glitch Effect */
+/* Flicker Kedipan Bioskop Tua Halus (Poin 4) */
 .glitch-bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
     pointer-events: none;
-    background: radial-gradient(circle, rgba(40, 5, 5, 0.15) 0%, rgba(0, 0, 0, 0.96) 90%);
-    animation: screenFlicker 0.15s infinite;
+    background: radial-gradient(circle, rgba(50, 4, 4, 0.18) 0%, rgba(0, 0, 0, 0.97) 92%);
+    animation: cinemaFlicker 0.25s infinite; 
 }
 
-@keyframes screenFlicker {
-    0%, 100% { opacity: 0.95; }
-    50% { opacity: 0.85; }
+@keyframes cinemaFlicker {
+    0%, 100% { opacity: 0.98; filter: brightness(1); }
+    30% { opacity: 0.93; filter: brightness(0.96); }
+    70% { opacity: 0.96; filter: brightness(1.03); }
+    90% { opacity: 0.91; filter: brightness(0.98); }
 }
 
 /* --- PARTIKEL AMBIENT --- */
@@ -99,19 +101,20 @@
     position: relative;
 }
 
-.horror-overlay {
+/* Efek Merah Lambat Merayap Anggun (Poin 4) */
+.horror-overlay-slow {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    background: radial-gradient(circle, rgba(160, 4, 4, 0.25) 0%, rgba(20, 0, 0, 0.8) 50%, rgba(0, 0, 0, 1) 100%);
+    background: radial-gradient(circle, rgba(180, 0, 0, 0.28) 0%, rgba(15, 0, 0, 0.85) 60%, rgba(0, 0, 0, 1) 100%);
     z-index: 1;
     opacity: 0;
-    animation: redBleedTransition 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 3.8s forwards;
+    animation: smoothRedBleed 6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 3.5s forwards; 
 }
 
-@keyframes redBleedTransition {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes smoothRedBleed {
+    from { opacity: 0; filter: blur(4px); }
+    to { opacity: 1; filter: blur(0px); }
 }
 
 .press-anything-text {
@@ -130,13 +133,16 @@
     to { opacity: 1; transform: scale(1); filter: blur(0px); }
 }
 
-.press-anything-text.interacted {
+/* Memudar Hilang Lambat Menghindari Mendadak (Poin 2) */
+.press-anything-text.interacted-fade-out {
     color: var(--accent-red) !important;
-    text-shadow: 0 0 30px var(--accent-red);
-    animation: none !important;
-    transform: scale(1.08);
-    opacity: 1 !important;
-    transition: all 0.2s cubic-bezier(0.15, 0.85, 0.35, 1);
+    text-shadow: 0 0 35px var(--accent-red), 0 0 15px var(--accent-red);
+    transform: scale(1.05);
+    opacity: 0;
+    filter: blur(8px);
+    transition: opacity 1.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                filter 1.8s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 1.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes pulseText {
@@ -144,21 +150,26 @@
     50% { opacity: 1; transform: scale(1); }
 }
 
+/* Flash Sinematik Lambat Melambat Sesuai Request */
 .flash-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     background: #ffffff;
     z-index: 99;
     pointer-events: none;
-    animation: flashFade 1s forwards ease-out;
+    animation: flashFadeSinematic 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
 }
-@keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes flashFadeSinematic { 
+    0% { opacity: 0.85; } 
+    10% { opacity: 1; }
+    100% { opacity: 0; } 
+}
 
-/* --- POSISI LAYOUT HOME MENU UTAMA --- */
+/* --- POSISI LAYOUT HOME MENU UTAMA (POIN TINGGI UP) --- */
 .order-layout {
     position: absolute;
     left: 8%;
-    top: 35%; /* Mengubah 'bottom' kemarin jadi 'top' supaya posisi menu naik ke atas */
+    top: 35%; 
     z-index: 5;
     text-align: left;
 }
@@ -171,7 +182,6 @@
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
     width: fit-content;
-    animation: slideFromLeft 1s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
 .order-title {
@@ -192,7 +202,6 @@
     text-transform: uppercase;
 }
 
-/* Sterilisasi List Komponen dari bawaan HTML browser */
 .order-menu-list { 
     list-style: none !important; 
     padding: 0 !important; 
@@ -206,19 +215,6 @@
     list-style-type: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    opacity: 0; 
-    transform: translateX(-50px); 
-    animation: slideFromLeft 0.8s cubic-bezier(0.15, 0.85, 0.35, 1) forwards; 
-}
-.order-menu-item:nth-child(1) { animation-delay: 0.1s; }
-.order-menu-item:nth-child(2) { animation-delay: 0.2s; }
-.order-menu-item:nth-child(3) { animation-delay: 0.3s; }
-.order-menu-item:nth-child(4) { animation-delay: 0.4s; }
-.order-menu-item:nth-child(5) { animation-delay: 0.5s; }
-
-@keyframes slideFromLeft {
-    from { opacity: 0; transform: translateX(-50px); }
-    to { opacity: 1; transform: translateX(0); }
 }
 
 .order-menu-btn {
@@ -234,14 +230,29 @@
     padding: 4px 0;
     display: block;
     text-align: left;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
-.order-menu-btn:hover,
-.order-menu-btn.focused {
-    color: var(--text-bright) !important;
-    letter-spacing: 6px !important;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6) !important;
+/* --- TRANSISI REVEAL FADE-IN HALUS (POIN 2) --- */
+.main-menu-fade-in {
+    animation: smoothMenuReveal 2.8s cubic-bezier(0.33, 1, 0.68, 1) 0.5s forwards; 
+}
+
+.global-bar-fade-in {
+    animation: smoothMenuReveal 3.2s cubic-bezier(0.33, 1, 0.68, 1) 0.8s forwards;
+}
+
+@keyframes smoothMenuReveal {
+    from {
+        opacity: 0;
+        filter: blur(8px);
+        transform: translate3d(-20px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0px);
+        transform: translate3d(0, 0, 0);
+    }
 }
 
 /* --- EXTRAS LAYOUT --- */
@@ -255,7 +266,6 @@
     height: 65vh;
     display: flex;
     flex-direction: column;
-    animation: slideFromLeft 0.6s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
 }
 
 .extras-menu-split {
@@ -326,7 +336,7 @@
     line-height: 1.6; letter-spacing: 1px; max-width: 500px;
 }
 
-/* --- INDIKATOR GLOBAL NAVIGATION BAR (BOTTOM-STABLE) --- */
+/* --- INDIKATOR NAVIGATION BAR (BOTTOM-STABLE) --- */
 .global-gameplay-indicator-bar {
     position: absolute;
     bottom: 35px;
@@ -425,25 +435,3 @@
 .thief-toggle-btn.active { background: var(--accent-red); color: #fff; }
 .settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); }
 .back-btn { background: none; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 12px 24px; font-family: 'Times New Roman', Times, serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; margin-top: auto; cursor: pointer; width: 100%; }
-
-/* --- ANIMASI TRANSISI HALUS HOME MENU (FADE-IN) --- */
-.main-menu-fade-in {
-    animation: smoothMenuReveal 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-.global-bar-fade-in {
-    animation: smoothMenuReveal 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-@keyframes smoothMenuReveal {
-    from {
-        opacity: 0;
-        filter: blur(6px);
-        transform: translate3d(-15px, 0, 0);
-    }
-    to {
-        opacity: 1;
-        filter: blur(0px);
-        transform: translate3d(0, 0, 0);
-    }
-}
