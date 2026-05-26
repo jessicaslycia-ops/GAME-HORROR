@@ -3,7 +3,7 @@
     --text-bright: #ffffff;
     --text-dim: #999999;
     --accent-red: #ff1a1a;
-    --panel-bg: rgba(5, 5, 5, 0.95);
+    --panel-bg: rgba(5, 5, 5, 0.96);
     --border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -25,13 +25,13 @@
     user-select: none;
 }
 
-/* Background Glitch & Flicker (Hanya di Latar Belakang) */
+/* Background Glitch & Flicker */
 .glitch-bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
     pointer-events: none;
-    background: radial-gradient(circle, rgba(35, 5, 5, 0.2) 0%, rgba(0, 0, 0, 0.95) 90%);
+    background: radial-gradient(circle, rgba(45, 5, 5, 0.2) 0%, rgba(0, 0, 0, 0.95) 90%);
     animation: screenFlicker 0.15s infinite;
 }
 
@@ -40,120 +40,176 @@
     50% { opacity: 0.85; }
 }
 
-/* --- FASE 1: INTRO (MADE BY BEBEN) --- */
+/* --- EFEK PARTIKEL PUTIH (DARI BAWAH KE ATAS) --- */
+.particles-container {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    bottom: -10px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    animation: floatUp 6s infinite ease-in-out;
+}
+
+/* Variasi posisi dan kecepatan partikel */
+.particle:nth-child(1) { left: 10%; width: 4px; height: 4px; animation-delay: 0s; animation-duration: 5s; }
+.particle:nth-child(2) { left: 25%; width: 6px; height: 6px; animation-delay: 1.5s; animation-duration: 7s; }
+.particle:nth-child(3) { left: 45%; width: 3px; height: 3px; animation-delay: 0.5s; animation-duration: 4s; }
+.particle:nth-child(4) { left: 65%; width: 5px; height: 5px; animation-delay: 2.5s; animation-duration: 6s; }
+.particle:nth-child(5) { left: 80%; width: 4px; height: 4px; animation-delay: 1s; animation-duration: 5.5s; }
+.particle:nth-child(6) { left: 90%; width: 7px; height: 7px; animation-delay: 3s; animation-duration: 8s; }
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 0; }
+    20% { opacity: 0.6; }
+    90% { opacity: 0.2; }
+    100% { transform: translateY(-105vh) scale(0.5); opacity: 0; }
+}
+
+/* --- FASE 1: INTRO & FASE 2: SPLASH --- */
 .intro-screen {
     font-size: 2.5rem;
     letter-spacing: 12px;
     text-transform: uppercase;
-    color: #ffffff;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-    text-align: center;
-    z-index: 5;
     animation: fadeInOut 4s forwards;
 }
-
 @keyframes fadeInOut {
     0% { opacity: 0; transform: scale(0.95); }
     30%, 70% { opacity: 1; transform: scale(1); }
     100% { opacity: 0; transform: scale(1.05); }
 }
-
-/* --- FASE 2: SPLASH SCREEN (PRESS ANYTHING) --- */
-.splash-screen {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    padding-bottom: 15%;
-    z-index: 3;
-    cursor: pointer;
-}
-
-.press-anything-text {
-    font-size: 2.2rem;
-    letter-spacing: 8px;
-    text-transform: uppercase;
-    color: #ffffff;
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-    animation: pulseText 1.5s infinite;
-    transition: all 0.1s ease-out;
-}
-
-.press-anything-text.interacted {
-    color: var(--accent-red) !important;
-    text-shadow: 0 0 30px var(--accent-red), 0 0 15px var(--accent-red);
-    animation: none;
-    transform: scale(1.1);
-}
-
-@keyframes pulseText {
-    0%, 100% { opacity: 0.5; transform: scale(0.98); }
-    50% { opacity: 1; transform: scale(1); }
-}
+.splash-screen { width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15%; z-index: 3; cursor: pointer; }
+.press-anything-text { font-size: 2.2rem; letter-spacing: 8px; text-transform: uppercase; text-shadow: 0 0 12px rgba(255, 255, 255, 0.8); animation: pulseText 1.5s infinite; transition: all 0.1s ease-out; }
+.press-anything-text.interacted { color: var(--accent-red) !important; text-shadow: 0 0 30px var(--accent-red); animation: none; transform: scale(1.1); }
+@keyframes pulseText { 0%, 100% { opacity: 0.5; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } }
 
 /* --- FASE 3: HOME MENU (THE ORDER STYLE) --- */
-.order-layout {
-    position: absolute;
-    left: 8%;
-    top: 25%;
+.order-layout { position: absolute; left: 8%; top: 25%; z-index: 5; text-align: left; }
+.order-header { display: flex; align-items: baseline; gap: 15px; margin-bottom: 35px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; width: fit-content; }
+.order-title { font-size: 3rem; font-weight: 400; letter-spacing: 8px; text-transform: uppercase; margin: 0; }
+.order-subtitle { font-size: 2rem; color: var(--text-dim); letter-spacing: 4px; padding-left: 15px; border-left: 2px solid var(--text-dim); }
+.order-menu-list { list-style: none; padding: 0; margin: 0; }
+.order-menu-item { margin: 18px 0; }
+.order-menu-btn { background: none; border: none; color: var(--text-dim); font-family: 'Times New Roman', Times, serif; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 4px; cursor: pointer; transition: all 0.2s ease; }
+.order-menu-btn:hover { color: var(--text-bright); letter-spacing: 6px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.6); }
+
+/* --- INTRINSICS/STAGE SELECT PANEL (STYLE: WARFRAME DRIFTER) --- */
+.intrinsics-panel {
+    width: 90%;
+    max-width: 1200px;
     z-index: 5;
+    text-align: center;
+    animation: panelFade 0.4s ease-out;
+}
+
+.intrinsics-title-header {
+    text-transform: uppercase;
+    font-size: 1.8rem;
+    letter-spacing: 6px;
+    color: var(--text-bright);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 50px;
     text-align: left;
 }
 
-.order-header {
+.stages-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.stage-card {
     display: flex;
-    align-items: baseline;
-    gap: 15px;
-    margin-bottom: 35px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-    width: fit-content;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
 }
 
-.order-title {
-    font-size: 3rem;
-    font-weight: 400;
-    letter-spacing: 8px;
-    text-transform: uppercase;
-    margin: 0;
+/* Struktur Kerangka Lingkaran Luar */
+.circle-wrapper {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
 }
 
-.order-subtitle {
-    font-size: 2rem;
-    color: var(--text-dim);
-    letter-spacing: 4px;
-    padding-left: 15px;
-    border-left: 2px solid var(--text-dim);
+/* Efek Ring Luar Tipis */
+.circle-wrapper::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
-.order-menu-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.order-menu-item {
-    margin: 18px 0;
-}
-
-.order-menu-btn {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1.6rem;
-    text-transform: uppercase;
-    letter-spacing: 4px;
+/* Lingkaran Level Aktif (Level 1) */
+.stage-circle-active {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-red);
+    background: radial-gradient(circle, rgba(139, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.9) 80%);
+    box-shadow: 0 0 25px rgba(255, 26, 26, 0.6), inset 0 0 15px rgba(255, 26, 26, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 0 10px #ff1a1a;
     cursor: pointer;
-    transition: all 0.2s ease;
-    padding: 5px 0;
+    transition: all 0.3s ease;
 }
 
-.order-menu-btn:hover {
-    color: var(--text-bright);
-    letter-spacing: 6px;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+.stage-circle-active:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 35px var(--accent-red), inset 0 0 25px var(--accent-red);
+}
+
+/* Lingkaran Level Terkunci (Level 2-6) */
+.stage-circle-locked {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid #444444;
+    background: rgba(20, 20, 20, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    color: #555555;
+    cursor: not-allowed;
+}
+
+.stage-label-active {
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    color: var(--accent-red);
+    text-shadow: 0 0 5px rgba(255, 26, 26, 0.5);
+    margin-top: 5px;
+}
+
+.stage-label-locked {
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    color: #444444;
+    margin-top: 5px;
 }
 
 /* --- PANEL OPTION (THIEF STYLE MODERN) --- */
@@ -180,12 +236,7 @@
     border-right: 1px solid var(--border-color);
 }
 
-.settings-sidebar h2 {
-    font-size: 1.6rem;
-    letter-spacing: 3px;
-    margin-bottom: 35px;
-    color: #fff;
-}
+.settings-sidebar h2 { font-size: 1.6rem; letter-spacing: 3px; margin-bottom: 35px; color: #fff; text-transform: uppercase; }
 
 .settings-category {
     color: var(--text-dim);
@@ -197,80 +248,24 @@
     transition: color 0.2s;
 }
 
+.settings-category:hover {
+    color: #fff;
+}
+
 .settings-category.active {
     color: var(--accent-red);
     font-weight: bold;
 }
 
-.settings-main {
-    padding: 35px;
-    overflow-y: auto;
-}
-
-.thief-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 12px;
-}
-
-.thief-label {
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-size: 1rem;
-    color: #ddd;
-}
-
-.thief-toggle-group {
-    display: flex;
-    background: #111;
-    border: 1px solid #333;
-}
-
-.thief-toggle-btn {
-    padding: 5px 18px;
-    background: none;
-    border: none;
-    color: #555;
-    cursor: pointer;
-    font-family: inherit;
-    text-transform: uppercase;
-    transition: all 0.2s;
-}
-
-.thief-toggle-btn.active {
-    background: var(--accent-red);
-    color: #fff;
-}
-
-/* Upload Row & Input File */
-.upload-box {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed #444;
-    padding: 12px;
-    margin-top: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.upload-box input[type="file"] {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.8rem;
-    color: #aaa;
-}
-
-.settings-description {
-    padding: 35px;
-    background: rgba(255, 255, 255, 0.01);
-    font-style: italic;
-    color: var(--text-dim);
-    line-height: 1.6;
-    border-left: 1px solid var(--border-color);
-    font-size: 0.95rem;
-}
+.settings-main { padding: 35px; overflow-y: auto; }
+.thief-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; }
+.thief-label { text-transform: uppercase; letter-spacing: 2px; font-size: 1rem; color: #ddd; }
+.thief-toggle-group { display: flex; background: #111; border: 1px solid #333; }
+.thief-toggle-btn { padding: 5px 18px; background: none; border: none; color: #555; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.2s; }
+.thief-toggle-btn.active { background: var(--accent-red); color: #fff; }
+.upload-box { background: rgba(255, 255, 255, 0.03); border: 1px dashed #444; padding: 12px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; }
+.upload-box input[type="file"] { font-family: 'Courier New', Courier, monospace; font-size: 0.8rem; color: #aaa; }
+.settings-description { padding: 35px; background: rgba(255, 255, 255, 0.01); font-style: italic; color: var(--text-dim); line-height: 1.6; border-left: 1px solid var(--border-color); font-size: 0.95rem; }
 
 .back-btn {
     background: none;
@@ -286,9 +281,5 @@
     width: 100%;
     transition: all 0.2s;
 }
-
-.back-btn:hover {
-    background: var(--accent-red);
-    color: #000;
-    box-shadow: 0 0 15px var(--accent-red);
-}
+.back-btn:hover { background: var(--accent-red); color: #000; box-shadow: 0 0 15px var(--accent-red); }
+@keyframes panelFade { from { opacity: 0; } to { opacity: 1; } }
