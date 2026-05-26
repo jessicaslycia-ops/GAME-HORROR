@@ -3,9 +3,10 @@ import '../styles/MainMenu.css';
 
 const MainMenu = () => {
   const [gameState, setGameState] = useState('intro'); // intro, splash, menu, startgame, option, credit, extra, special
-  const [activeTab, setActiveTab] = useState('graphics'); // graphics, audio
+  const [activeTab, setActiveTab] = useState('graphics');
   const [bgImage, setBgImage] = useState(null);
   const [isInteracted, setIsInteracted] = useState(false);
+  const [triggerFlash, setTriggerFlash] = useState(false); // State pemicu kilatan flash putih
 
   // Audio References
   const audioRefs = {
@@ -28,7 +29,7 @@ const MainMenu = () => {
     cinematic: 'ON',
   });
 
-  // Fase 1: Intro Otomatis
+  // Fase 1: Intro Otomatis (4 Detik)
   useEffect(() => {
     if (gameState === 'intro') {
       const timer = setTimeout(() => setGameState('splash'), 4000);
@@ -36,14 +37,14 @@ const MainMenu = () => {
     }
   }, [gameState]);
 
-  // Musik BGM Otomatis di Home Menu & Panel Pendukung
+  // Musik BGM otomatis aktif berulang di Home Menu & Panel Utama
   useEffect(() => {
     if ((gameState === 'menu' || gameState === 'startgame' || gameState === 'option') && audioRefs.bgm.current) {
       audioRefs.bgm.current.play().catch(() => {});
     }
   }, [gameState]);
 
-  // Fungsi Unggah Media (Gambar & Suara)
+  // Fungsi Unggah Berkas Media
   const handleFileUpload = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -63,7 +64,7 @@ const MainMenu = () => {
     }
   };
 
-  // Trigger Sound Efek
+  // Trigger Efek Suara
   const playSfx = (type) => {
     if (audioRefs[type].current) {
       audioRefs[type].current.currentTime = 0;
@@ -86,11 +87,20 @@ const MainMenu = () => {
     }
   };
 
+  // Fase 2: Aksi Tekan Sembarang Tombol / Klik Layar
   const handleStartInteraction = () => {
     if (isInteracted) return;
     setIsInteracted(true);
     playSfx('press');
-    setTimeout(() => setGameState('menu'), 1000);
+    
+    // Aktifkan kilatan cahaya putih benderang
+    setTriggerFlash(true);
+
+    // Mengalihkan ke Home Menu dengan mulus setelah flash meredup
+    setTimeout(() => {
+      setGameState('menu');
+      setTriggerFlash(false); // Matikan flash agar tidak menutupi menu utama
+    }, 1000);
   };
 
   useEffect(() => {
@@ -106,10 +116,13 @@ const MainMenu = () => {
       className="horror-game-container"
       style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'none' }}
     >
-      {/* Background Glitch Effect */}
+      {/* Efek Kilatan Flash Putih Terang */}
+      {triggerFlash && <div className="flash-overlay"></div>}
+
+      {/* Background Glitch Layar */}
       {gameState !== 'intro' && <div className="glitch-bg"></div>}
 
-      {/* PARTIKEL PUTIH BERTERBANGAN KE ATAS (Selalu Aktif setelah Intro) */}
+      {/* Partikel Putih Selalu Aktif dari Bawah Ke Atas */}
       {gameState !== 'intro' && (
         <div className="particles-container">
           <div className="particle"></div>
@@ -121,28 +134,30 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 1. TAMPILAN INTRO */}
+      {/* 1. LAYAR INTRO */}
       {gameState === 'intro' && (
         <div className="intro-screen">
           <h1>Made by Beben</h1>
         </div>
       )}
 
-      {/* 2. TAMPILAN SPLASH */}
+      {/* 2. LAYAR SPLASH */}
       {gameState === 'splash' && (
         <div className="splash-screen" onClick={handleStartInteraction}>
+          {/* Efek Gradasi Merah & Hitam Horor */}
+          <div className="horror-overlay"></div>
           <div className={`press-anything-text ${isInteracted ? 'interacted' : ''}`}>
             {isInteracted ? 'Accessing...' : 'Press Anything'}
           </div>
         </div>
       )}
 
-      {/* 3. TAMPILAN HOME MENU */}
+      {/* 3. LAYAR HOME MENU UTAMA (PERUBAHAN JUDUL: FINAL END) */}
       {gameState === 'menu' && (
         <div className="order-layout">
           <div className="order-header">
-            <h1 className="order-title">The Order</h1>
-            <span className="order-subtitle">1886</span>
+            <h1 className="order-title">FINAL END</h1>
+            <span className="order-subtitle">2026</span>
           </div>
 
           <ul className="order-menu-list">
@@ -165,7 +180,7 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 4. TAMPILAN START GAME: DRIFTER INTRINSICS / STAGE SELECT STYLE */}
+      {/* 4. LAYAR SELECT CHAPTER / STAGE */}
       {gameState === 'startgame' && (
         <div className="intrinsics-panel">
           <div className="intrinsics-title-header">
@@ -173,7 +188,6 @@ const MainMenu = () => {
           </div>
 
           <div className="stages-grid">
-            {/* LEVEL 1: TERBUKA */}
             <div className="stage-card">
               <div className="circle-wrapper">
                 <div className="stage-circle-active" onMouseEnter={() => playSfx('move')} onClick={() => { playSfx('press'); alert('Memasuki Level 1...'); }}>
@@ -183,13 +197,10 @@ const MainMenu = () => {
               <div className="stage-label-active">AVAILABLE</div>
             </div>
 
-            {/* LEVEL 2-6: TERKUNCI */}
             {[2, 3, 4, 5, 6].map((num) => (
               <div className="stage-card" key={num}>
                 <div className="circle-wrapper">
-                  <div className="stage-circle-locked">
-                    🔒
-                  </div>
+                  <div className="stage-circle-locked">🔒</div>
                 </div>
                 <div className="stage-label-locked">LEVEL {num}</div>
               </div>
@@ -202,27 +213,20 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* 5. PANEL OPTION (FIXED TAB NAVIGATION) */}
+      {/* 5. PANEL SETTING (OPTION) */}
       {gameState === 'option' && (
         <div className="thief-settings-panel">
           <div className="settings-sidebar">
             <h2>SETTINGS</h2>
-            <div 
-              className={`settings-category ${activeTab === 'graphics' ? 'active' : ''}`} 
-              onClick={() => { playSfx('move'); setActiveTab('graphics'); }}
-            >
+            <div className={`settings-category ${activeTab === 'graphics' ? 'active' : ''}`} onClick={() => { playSfx('move'); setActiveTab('graphics'); }}>
               Graphics & Visual
             </div>
-            <div 
-              className={`settings-category ${activeTab === 'audio' ? 'active' : ''}`} 
-              onClick={() => { playSfx('move'); setActiveTab('audio'); }}
-            >
+            <div className={`settings-category ${activeTab === 'audio' ? 'active' : ''}`} onClick={() => { playSfx('move'); setActiveTab('audio'); }}>
               Audio & Media
             </div>
           </div>
 
           <div className="settings-main">
-            {/* SUB-MENU 1: GRAPHICS TAB */}
             {activeTab === 'graphics' && (
               <>
                 <div className="thief-row">
@@ -250,7 +254,6 @@ const MainMenu = () => {
               </>
             )}
 
-            {/* SUB-MENU 2: AUDIO TAB */}
             {activeTab === 'audio' && (
               <>
                 <div className="thief-row" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -287,9 +290,7 @@ const MainMenu = () => {
               </>
             )}
 
-            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>
-              Apply & Save
-            </button>
+            <button className="back-btn" onClick={() => { playSfx('back'); setGameState('menu'); }}>Apply & Save</button>
           </div>
 
           <div className="settings-description">
@@ -302,7 +303,7 @@ const MainMenu = () => {
         </div>
       )}
 
-      {/* INTERFACE PANEL SUPLEMEN (EXTRA, SPECIAL CONTENT, CREDIT) */}
+      {/* PANEL TAMBAHAN */}
       {(gameState === 'extra' || gameState === 'special' || gameState === 'credit') && (
         <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
@@ -316,13 +317,10 @@ const MainMenu = () => {
               {gameState === 'special' && 'Bonus Developer Commentary and Behind the Scenes.'}
               {gameState === 'credit' && 'Lead Project & Designer: BEBEN'}
             </p>
-            <button className="back-btn" style={{ width: '300px', margin: '0 auto' }} onClick={() => { playSfx('back'); setGameState('menu'); }}>
-              Back
-            </button>
+            <button className="back-btn" style={{ width: '300px', margin: '0 auto' }} onClick={() => { playSfx('back'); setGameState('menu'); }}>Back</button>
           </div>
         </div>
       )}
-
     </div>
   );
 };
