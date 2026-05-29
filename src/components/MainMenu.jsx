@@ -7,7 +7,7 @@ const MainMenu = () => {
   const [isInteracted, setIsInteracted] = useState(false);
   const [triggerFlash, setTriggerFlash] = useState(false);
   
-  // State awal background kita arahkan ke foto pertama (bg-menu-1.jpg)
+  // Amankan state awal: Default langsung ke foto pertama agar tidak kosong saat splash screen
   const [bgImage, setBgImage] = useState('/bg-menu-1.jpg');
 
   // FLAGS UNTUK TRANSISI SIFATNYA ONCE & RE-TRIGGER ANIMATION
@@ -90,7 +90,7 @@ const MainMenu = () => {
     gainNodeRef.current.gain.linearRampToValueAtTime(1, audioCtxRef.current.currentTime + 3.0);
   };
 
-  // Perbaikan Fungsi Fade-Out Audio BGM saat kembali ke Splash Screen
+  // Fungsi Fade-Out Audio BGM saat kembali ke Splash Screen
   const fadeOutBgm = () => {
     if (audioCtxRef.current && gainNodeRef.current) {
       gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 1.2);
@@ -126,17 +126,11 @@ const MainMenu = () => {
     setTriggerFlash(true);
 
     // ==========================================
-    // LOGIKA ACAK MULTI-BACKGROUND OTOMATIS
+    // LOGIKA ACAK MULTI-BACKGROUND
     // ==========================================
-    // Tentukan jumlah total foto yang saat ini ada di folder public kamu.
-    // Ganti angka di bawah ini (misal: jika punya 3 foto, ganti jadi 3. Jika punya 5, ganti jadi 5).
-    // Kodenya aman, tidak akan membuat background kosong/putih.
+    // Sesuaikan angka ini dengan jumlah foto yang kamu miliki di folder public.
     const TOTAL_BACKGROUNDS = 2; 
-    
-    // Pilih angka acak antara 1 sampai jumlah total foto
     const randomIndex = Math.floor(Math.random() * TOTAL_BACKGROUNDS) + 1;
-    
-    // Set background yang terpilih secara acak
     setBgImage(`/bg-menu-${randomIndex}.jpg`);
     // ==========================================
     
@@ -318,6 +312,7 @@ const MainMenu = () => {
   return (
     <div 
       className={`horror-game-container ${isTransitioning ? 'screen-fade-out-global' : ''}`} 
+      /* FIX UTAMA: Pastikan background-image tetap dipanggil di state 'splash' menggunakan foto pertama agar tidak black screen */
       style={{ backgroundImage: gameState !== 'intro' ? `url(${bgImage})` : 'none' }}
     >
       {triggerFlash && <div className="flash-overlay"></div>}
