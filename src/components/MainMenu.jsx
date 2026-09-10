@@ -460,7 +460,7 @@ const MainMenu = () => {
         <div className="thief-settings-panel" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-main" style={{ textAlign: 'center', paddingTop: '10%' }}>
             <h2>Credits</h2>
-            <p style={{ margin: '40px 0', fontSize: '2.2rem', color: '#ffffff', letterSpacing: '3px' }}>Created by Nurull</p>
+            <p style={{ margin: '40px 0', fontSize: '2.2rem', color: '#ffffff', letterSpacing: '3px' }}>Created by Benaya</p>
             <button className="back-btn" onClick={handleReturnToMenu}>Back</button>
           </div>
         </div>
